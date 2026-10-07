@@ -16,7 +16,7 @@ try:
 except ImportError:
     IdMaker = None
 
-STATE_KEY = pytest.StashKey[dict]()
+STATE_KEY = pytest.StashKey[dict]() if hasattr(pytest, "StashKey") else None
 MIN_IDS = 64
 _ORIGINAL = getattr(IdMaker, "make_unique_parameterset_ids", None)
 _SOURCE_SHA256 = "6baee487481ac9da41d36fee0c8870f093aab91b9f507434d5c89620ddf588b8"
@@ -43,6 +43,8 @@ class _ResolvedIds:
 
 
 def pytest_configure(config):
+    if STATE_KEY is None:
+        return
     state = {
         "status": "disabled",
         "reason": "set PYTEST_BOORST=1 to enable the alpha",
@@ -117,12 +119,16 @@ def pytest_configure(config):
 
 
 def pytest_report_header(config):
+    if STATE_KEY is None:
+        return
     state = config.stash[STATE_KEY]
     if state["status"] != "disabled":
         return f"boorst: {state['status']} ({state['reason']})"
 
 
 def pytest_terminal_summary(terminalreporter, config):
+    if STATE_KEY is None:
+        return
     state = config.stash[STATE_KEY]
     if state["status"] == "active":
         terminalreporter.write_line(
