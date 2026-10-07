@@ -93,3 +93,22 @@ GitHub CI repeats the synthetic experiment on a separate Linux runner, checks th
 declared duplicate target and conversion-inclusive helper benefit, and uploads
 raw timing and resource receipts. These gates apply to this workload and do not
 authorize default-on activation or broader compatibility claims.
+
+## Explicit sibling-file discovery
+
+```sh
+uv run --no-sync python benchmarks/discovery.py --repeats 3
+```
+
+This pytest 9.1.1 workload passes 384 separate sibling `.py` files to stock pytest
+and enabled Boorst. Each fresh subprocess runs all tests, including a shared
+yield fixture. Every timed run includes the same ordered-ID and phase observer;
+bytecode writes are disabled equally. Mode order alternates between repetitions.
+The receipt records timings, source hashes, parity, and directory-reuse counters.
+`--package` checks the same workload with a Python package directory.
+
+CI requires enabled full-run median time to be at least 5% below stock. This is
+a Python directory-report optimization, separate from Rust parameter-ID work.
+It still performs pytest's ordinary file import, collection, fixtures, and test
+execution, and still scans cached report contents to match each requested file.
+Directory arguments and execution-heavy workloads can see little benefit.

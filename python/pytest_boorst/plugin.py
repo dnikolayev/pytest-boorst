@@ -1,4 +1,4 @@
-"""Opt-in adapter for one verified pytest parameter-ID implementation."""
+"""Opt-in adapters for verified pytest implementations."""
 
 from __future__ import annotations
 
@@ -126,6 +126,24 @@ def pytest_report_header(config):
         return f"boorst: {state['status']} ({state['reason']})"
 
 
+@pytest.hookimpl(trylast=True)
+def pytest_sessionstart(session):
+    if (
+        STATE_KEY is None
+        or os.environ.get("PYTEST_BOORST") != "1"
+        or pytest.__version__ != "9.1.1"
+        or sys.platform == "win32"
+        or os.environ.get("PYTEST_DEBUG")
+        or sys.implementation.name != "cpython"
+        or not (3, 10) <= sys.version_info[:2] <= (3, 14)
+        or sysconfig.get_config_var("Py_GIL_DISABLED")
+    ):
+        return
+    from ._discovery import install
+
+    install(session, session.config.stash[STATE_KEY])
+
+
 def pytest_terminal_summary(terminalreporter, config):
     if STATE_KEY is None:
         return
@@ -137,3 +155,7 @@ def pytest_terminal_summary(terminalreporter, config):
         )
     elif state["status"] == "fallback":
         terminalreporter.write_line(f"boorst: fallback ({state['reason']})")
+    if state.get("directory_reuses"):
+        terminalreporter.write_line(
+            f"boorst: {state['directory_reuses']} directory reports reused"
+        )
