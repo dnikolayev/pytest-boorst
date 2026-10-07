@@ -285,7 +285,7 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "pytest", specifier = ">=8.4,<10" }]
+requires-dist = [{ name = "pytest" }]
 
 [package.metadata.requires-dev]
 dev = [

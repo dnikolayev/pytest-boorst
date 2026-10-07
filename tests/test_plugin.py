@@ -53,6 +53,26 @@ def test_default_is_disabled(config, monkeypatch):
     assert IdMaker.make_unique_parameterset_ids is plugin._ORIGINAL
 
 
+@pytest.mark.parametrize("enabled", ["0", "1"])
+def test_missing_stash_keeps_plugin_quiet(monkeypatch, enabled):
+    source = Path(plugin.__file__).read_text(encoding="utf-8")
+    monkeypatch.delattr(pytest, "StashKey")
+    module = ModuleType("pytest_boorst._legacy")
+    exec(compile(source, plugin.__file__, "exec"), module.__dict__)
+    monkeypatch.setenv("PYTEST_BOORST", enabled)
+
+    def unexpected(*args):
+        raise AssertionError("legacy fallback must not load native code or report")
+
+    monkeypatch.setattr(module.importlib, "import_module", unexpected)
+    config = SimpleNamespace()
+    module.pytest_configure(config)
+    assert module.pytest_report_header(config) is None
+    module.pytest_terminal_summary(SimpleNamespace(write_line=unexpected), config)
+    assert vars(config) == {}
+    assert IdMaker.make_unique_parameterset_ids is plugin._ORIGINAL
+
+
 @pytest.mark.parametrize("missing", ["class", "method"])
 def test_missing_private_api_does_not_break_plugin_loading(
     config, monkeypatch, missing
@@ -192,6 +212,12 @@ def test_unsupported_activation_leaves_method_alone(config, monkeypatch, unsuppo
             raise ImportError("native unavailable")
 
         monkeypatch.setattr(plugin.importlib, "import_module", missing)
+    if unsupported != "native":
+
+        def unexpected(name):
+            raise AssertionError("unsupported activation must not load native code")
+
+        monkeypatch.setattr(plugin.importlib, "import_module", unexpected)
     before = IdMaker.make_unique_parameterset_ids
     plugin.pytest_configure(config)
     assert config.stash[plugin.STATE_KEY]["status"] == "fallback"

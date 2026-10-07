@@ -14,3 +14,5 @@ keep project-specific source, configuration, paths, and results outside this rep
 
 Changes are reviewed through pull requests. GitHub CI verifies wheel installation,
 compatibility tests, Rust checks, and source-distribution builds.
+Installation checks use normal dependency resolution over existing pytest versions;
+keep the installed version unchanged and compare fallback behavior with stock pytest.
