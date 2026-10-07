@@ -9,21 +9,27 @@ implementation fingerprint. See the [measured results](#performance-evidence).
 
 ## Try the alpha
 
-Download a wheel matching your platform from this repository's GitHub Actions
-artifacts, then install it into an isolated environment with your project dependencies:
+With uv installed, run this command from your project with its test dependencies
+already installed in its virtual environment. It works in POSIX shells and PowerShell:
 
 ```sh
-uv pip install ./pytest_boorst-0.1.0a2-<wheel-tags>.whl
-PYTEST_BOORST=1 uv run --no-sync pytest
+uv run --no-sync https://raw.githubusercontent.com/dnikolayev/pytest-boorst/v0.1.0a3/scripts/try.py
 ```
 
-The alpha is disabled unless `PYTEST_BOORST=1`. On PowerShell, set
-`$env:PYTEST_BOORST = "1"` before invoking pytest. Existing test configuration
-does not need editing. Use `pytest -p no:boorst` to prevent the plugin loading;
-removing the package also restores ordinary pytest behavior.
+Append your usual pytest arguments, such as `-q tests/`. The launcher installs the
+pinned GitHub release using a compatible wheel and enables Boorst for that pytest
+process. It preserves the existing Python, pytest, dependencies, project configuration,
+and lockfile. An already-installed matching alpha needs no download or reinstallation.
 
-No package has been published to PyPI yet. Wheel artifacts are experimental;
-the Linux artifacts currently target the native CI runner's platform.
+Native wheels are available for Linux x86-64, macOS ARM64, and Windows x86-64.
+Other platforms can install the universal Python wheel: it retains the guarded
+directory optimization on supported Linux/macOS environments and uses stock IDs.
+The Linux native wheel currently targets the CI runner's platform.
+
+Boorst remains disabled for ordinary pytest runs unless `PYTEST_BOORST=1`. Use
+`-p no:boorst` to prevent plugin loading; uninstalling the package restores ordinary
+pytest behavior. The launcher respects plugin-autoload settings. No package has
+been published to PyPI yet.
 
 ## Compatibility boundary
 
@@ -90,17 +96,17 @@ An independent benchmark job retains raw timings and CPU/memory observations.
 
 ## Performance evidence
 
-Measured on Ubuntu 24.04, CPython 3.12.3, pytest 9.1.1 and Boorst 0.1.0a2.
+Measured on Ubuntu 24.04, CPython 3.14.8, pytest 9.1.1 and Boorst 0.1.0a2.
 Times are medians of three fresh **full pytest runs**, including startup,
 collection, fixtures and execution. Percentages use unrounded medians.
 
 | Synthetic workload | Stock pytest | Boorst enabled | Time change |
 | --- | ---: | ---: | ---: |
-| 10,000 duplicate parameter IDs | 5.863 s | 4.546 s | 22.5% less |
-| 10,000 colliding numeric-suffix IDs | 5.659 s | 4.415 s | 22.0% less |
-| 384 explicit sibling test files | 9.875 s | 0.774 s | 92.2% less |
-| 10,000 unique IDs (control) | 4.370 s | 4.540 s | 3.9% more |
-| 8 IDs (control) | 0.173 s | 0.175 s | 1.0% more |
+| 10,000 duplicate parameter IDs | 8.491 s | 6.685 s | 21.3% less |
+| 10,000 colliding numeric-suffix IDs | 8.291 s | 6.495 s | 21.7% less |
+| 384 explicit sibling test files | 7.755 s | 1.003 s | 87.1% less |
+| 10,000 unique IDs (control) | 6.526 s | 6.511 s | 0.2% less |
+| 8 IDs (control) | 0.244 s | 0.248 s | 1.7% more |
 
 | Optimization | Why it helps |
 | --- | --- |
@@ -108,8 +114,8 @@ collection, fixtures and execution. Percentages use unrounded medians.
 | Directory-report reuse | Reuses a successful sibling-collector listing across file arguments, avoiding repeated scans and collector construction. This optimization uses Python. |
 
 Most ID savings come from the algorithm: the optimized Python comparison took
-4.738 s for duplicate IDs, versus 4.546 s with Rust. The isolated helper took
-6.06 ms in Python and 3.13 ms in Rust; helper timings describe only that component.
+6.739 s for duplicate IDs, versus 6.685 s with Rust. The isolated helper took
+6.40 ms in Python and 4.34 ms in Rust; helper timings describe only that component.
 Unique and small controls made zero native calls. Ordinary suites can see little
 benefit or overhead; these synthetic results do not predict overall project CI.
 
@@ -120,13 +126,12 @@ for both modes. CI requires at least 10% duplicate-workload improvement and 5%
 directory-workload improvement. Separate compatibility tests cover callbacks,
 fixtures, errors, coverage, asyncio, xdist and fallback behavior.
 
-Sources: [ID measurements](benchmarks/results/alpha2-ids-ci.json),
-[directory measurements](benchmarks/results/alpha2-discovery-ci.json), and the
-[successful CI run](https://github.com/dnikolayev/pytest-boorst/actions/runs/37692487737).
+Sources: [ID measurements](benchmarks/results/alpha2-python314-ids-ci.json),
+[directory measurements](benchmarks/results/alpha2-python314-discovery-ci.json), and the
+[successful CI run](https://github.com/dnikolayev/pytest-boorst/actions/runs/37696156274).
 
-The benchmark job uses CPython 3.14.8. The table above remains the recorded
-Python 3.12 measurement until a new receipt is available. Existing projects can
-keep their own Python version.
+The benchmark job uses CPython 3.14.8. Existing projects can keep their own
+Python version; the trial launcher uses their existing environment.
 
 Reproduce with Python 3.14 and a release build:
 
