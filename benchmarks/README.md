@@ -113,11 +113,19 @@ It still performs pytest's ordinary file import, collection, fixtures, and test
 execution, and still scans cached report contents to match each requested file.
 Directory arguments and execution-heavy workloads can see little benefit.
 
-## Alpha 2 CI snapshot
+## Python 3.14 CI snapshot
 
 The README's compact comparison uses the three-repeat Ubuntu 24.04 / CPython
-3.12.3 / pytest 9.1.1 [CI run](https://github.com/dnikolayev/pytest-boorst/actions/runs/37692487737).
+3.14.8 / pytest 9.1.1 / Boorst 0.1.0a2
+[CI run](https://github.com/dnikolayev/pytest-boorst/actions/runs/37696156274).
+[ID receipt](results/alpha2-python314-ids-ci.json) and
+[directory receipt](results/alpha2-python314-discovery-ci.json) retain every timing
+sample, parity result, activation counter and source digest. The observed controls
+are included in the README table; no general suite-speedup claim is made.
+
+The earlier CPython 3.12.3 snapshot is retained in the
 [ID receipt](results/alpha2-ids-ci.json) and
-[directory receipt](results/alpha2-discovery-ci.json) retain every timing sample,
-parity result, activation counter and source digest. The observed control
-overheads are included in the README table; no general suite-speedup claim is made.
+[directory receipt](results/alpha2-discovery-ci.json) from its
+[CI run](https://github.com/dnikolayev/pytest-boorst/actions/runs/37692487737).
+Different runners and interpreter versions prevent using these snapshots as a
+controlled Python-version comparison.
