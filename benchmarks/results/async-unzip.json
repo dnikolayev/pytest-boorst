@@ -1,0 +1,152 @@
+{
+  "source_commit": "ec538675ce6fa9b0ca38e8cdfb05a5abb0bd6cc5",
+  "wheel": {
+    "filename": "pytest_boorst-0.1.0a1-cp310-abi3-macosx_11_0_arm64.whl",
+    "sha256": "411e1ea99f467b2883ead594c7d3fec61a2c6a5278235999769b677b0c0effb2",
+    "installed_content_matches_archive": true,
+    "verified_installed_members": [
+      "pytest_boorst/__init__.py",
+      "pytest_boorst/_ids.py",
+      "pytest_boorst/_native.abi3.so",
+      "pytest_boorst/plugin.py",
+      "pytest_boorst-0.1.0a1.dist-info/METADATA",
+      "pytest_boorst-0.1.0a1.dist-info/WHEEL",
+      "pytest_boorst-0.1.0a1.dist-info/entry_points.txt",
+      "pytest_boorst-0.1.0a1.dist-info/licenses/LICENSE",
+      "pytest_boorst-0.1.0a1.dist-info/sboms/pytest-boorst.cyclonedx.json"
+    ]
+  },
+  "test_count": 89,
+  "phase_count": 267,
+  "behavior_equal": true,
+  "ordered_nodeids_equal": true,
+  "ordered_phase_outcomes_equal": true,
+  "historical_baseline_equal": true,
+  "pytest": "9.1.1",
+  "python": "3.12.12",
+  "timing_includes_external_recorder": true,
+  "timing_method": "Five rotating-order fresh subprocess samples per mode, after compatibility controls, serial local execution.",
+  "modes": {
+    "absent": {
+      "all_seconds": [
+        1.7257408750010654,
+        1.7652898330707103,
+        1.6003354579443112,
+        2.496111875050701,
+        1.7159651250112802
+      ],
+      "median_seconds": 1.7257408750010654,
+      "min_seconds": 1.6003354579443112,
+      "max_seconds": 2.496111875050701,
+      "boorst": null
+    },
+    "disabled": {
+      "all_seconds": [
+        2.2946182920131832,
+        2.639343250077218,
+        1.6375164999626577,
+        2.2710274170385674,
+        1.911985500017181
+      ],
+      "median_seconds": 2.2710274170385674,
+      "min_seconds": 1.6375164999626577,
+      "max_seconds": 2.639343250077218,
+      "boorst": {
+        "status": "disabled",
+        "reason": "set PYTEST_BOORST=1 to enable the alpha",
+        "native_calls": 0,
+        "native_ids": 0,
+        "fallback_calls": 0
+      }
+    },
+    "enabled": {
+      "all_seconds": [
+        1.8006488749524578,
+        1.5498127500759438,
+        2.046964083914645,
+        1.7557747079990804,
+        2.467311083106324
+      ],
+      "median_seconds": 1.8006488749524578,
+      "min_seconds": 1.5498127500759438,
+      "max_seconds": 2.467311083106324,
+      "boorst": {
+        "status": "active",
+        "reason": "ASCII parameter ID deduplication",
+        "native_calls": 0,
+        "native_ids": 0,
+        "fallback_calls": 4
+      }
+    }
+  },
+  "additional_checks": {
+    "blocked-plugin": {
+      "behavior_equal": true,
+      "boorst_loaded": false,
+      "options": "-p no:boorst",
+      "exitstatus": 0
+    },
+    "uninstalled": {
+      "behavior_equal": true,
+      "boorst_loaded": false,
+      "exitstatus": 0,
+      "enable_environment_flag": true
+    }
+  },
+  "environments": {
+    "absent": {
+      "python": "3.12.12",
+      "packages": {
+        "async-unzip": "0.8.1",
+        "packaging": "26.3",
+        "Pygments": "2.21.0",
+        "caio": "0.12.9",
+        "pytest-cov": "7.1.0",
+        "aiofile": "3.12.3",
+        "iniconfig": "2.3.1",
+        "pytest-asyncio": "1.4.0",
+        "aiofiles": "25.1.0",
+        "pytest": "9.1.1",
+        "pluggy": "1.6.0",
+        "typing_extensions": "4.16.0",
+        "coverage": "7.16.2"
+      },
+      "boorst_entry_points": []
+    },
+    "installed": {
+      "python": "3.12.12",
+      "packages": {
+        "async-unzip": "0.8.1",
+        "packaging": "26.3",
+        "Pygments": "2.21.0",
+        "caio": "0.12.9",
+        "pytest-cov": "7.1.0",
+        "aiofile": "3.12.3",
+        "iniconfig": "2.3.1",
+        "pytest-asyncio": "1.4.0",
+        "aiofiles": "25.1.0",
+        "pytest-boorst": "0.1.0a1",
+        "pytest": "9.1.1",
+        "pluggy": "1.6.0",
+        "typing_extensions": "4.16.0",
+        "coverage": "7.16.2"
+      },
+      "boorst_entry_points": [
+        "pytest_boorst.plugin"
+      ]
+    }
+  },
+  "upstream_worktree_clean": true,
+  "limitations": [
+    "Native accelerator was not exercised: native_calls and native_ids remained zero.",
+    "This real suite is a compatibility control; no speedup claim is supported.",
+    "Timing includes the common external recorder and host/process-start variability."
+  ],
+  "receipt_count": 20,
+  "ordered_nodeids_sha256": "dfc054ba700dfa3dfca15676166a7623af377a175c1190d22b5fe43b56dc031c",
+  "ordered_phase_outcomes_sha256": "ba16f5c0e1cca523c25126d23a621d7522c420ad43536089c7985fc11ab2fce6",
+  "phase_outcome_counts": {
+    "passed": 267
+  },
+  "source_url": "https://github.com/dnikolayev/async-unzip"
+}

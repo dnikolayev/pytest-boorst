@@ -1,0 +1,404 @@
+{
+  "python": "3.12.12",
+  "pytest": "9.1.1",
+  "package": "0.1.0a1",
+  "source_sha256": "b710d937c05e3cf0651fb4ad6ff37d9e93417ddce7ea3c9246deeb7253c2c99f",
+  "native_sha256": "eb8e2bf4eb682a438eef7c312f5a3f6b06b39c0c24e3bfba098df99c7d96465e",
+  "size": 10000,
+  "repeats": 3,
+  "baseline": "installed package blocked with -p no:boorst",
+  "timing": "fresh subprocesses; receipt recording disabled during timings",
+  "scenarios": {
+    "duplicate": {
+      "count": 10000,
+      "parity": true,
+      "state": {
+        "stock": null,
+        "python": {
+          "status": "active",
+          "reason": "ASCII parameter ID deduplication",
+          "native_calls": 1,
+          "native_ids": 10000,
+          "fallback_calls": 0
+        },
+        "rust": {
+          "status": "active",
+          "reason": "ASCII parameter ID deduplication",
+          "native_calls": 1,
+          "native_ids": 10000,
+          "fallback_calls": 0
+        }
+      },
+      "component_seconds": {
+        "stock": [
+          1.72388804203365,
+          1.8311112090013921,
+          1.7046597090084106
+        ],
+        "python": [
+          0.006456999923102558,
+          0.008346291957423091,
+          0.007042124983854592
+        ],
+        "rust": [
+          0.003626542049460113,
+          0.003240999998524785,
+          0.003779832972213626
+        ]
+      },
+      "component_median_seconds": {
+        "stock": 1.72388804203365,
+        "python": 0.007042124983854592,
+        "rust": 0.003626542049460113
+      },
+      "collection": {
+        "seconds": {
+          "stock": [
+            2.27400079194922,
+            2.307848750031553,
+            2.761679249932058
+          ],
+          "python": [
+            0.5684836249565706,
+            0.5517532500671223,
+            0.7655629999935627
+          ],
+          "rust": [
+            0.5555721250129864,
+            0.53504070895724,
+            0.6976147919194773
+          ]
+        },
+        "median_seconds": {
+          "stock": 2.307848750031553,
+          "python": 0.5684836249565706,
+          "rust": 0.5555721250129864
+        },
+        "rust_vs_stock": 4.154003856794665,
+        "rust_vs_python": 1.0232400067647065
+      },
+      "full_run": {
+        "seconds": {
+          "stock": [
+            11.01287891692482,
+            6.710313291056082,
+            7.5418224999448285
+          ],
+          "python": [
+            4.25953279202804,
+            4.941562750027515,
+            5.260093624936417
+          ],
+          "rust": [
+            5.347206834005192,
+            4.331348167033866,
+            4.978405790985562
+          ]
+        },
+        "median_seconds": {
+          "stock": 7.5418224999448285,
+          "python": 4.941562750027515,
+          "rust": 4.978405790985562
+        },
+        "rust_vs_stock": 1.5149071442912236,
+        "rust_vs_python": 0.9925994299169507
+      }
+    },
+    "collision": {
+      "count": 10000,
+      "parity": true,
+      "state": {
+        "stock": null,
+        "python": {
+          "status": "active",
+          "reason": "ASCII parameter ID deduplication",
+          "native_calls": 1,
+          "native_ids": 10000,
+          "fallback_calls": 0
+        },
+        "rust": {
+          "status": "active",
+          "reason": "ASCII parameter ID deduplication",
+          "native_calls": 1,
+          "native_ids": 10000,
+          "fallback_calls": 0
+        }
+      },
+      "component_seconds": {
+        "stock": [
+          1.5631721669342369,
+          1.5625515409046784,
+          1.6054656250635162
+        ],
+        "python": [
+          0.006634333054535091,
+          0.006682124920189381,
+          0.007769834017381072
+        ],
+        "rust": [
+          0.0034382500452920794,
+          0.0031122079817578197,
+          0.0029107501031830907
+        ]
+      },
+      "component_median_seconds": {
+        "stock": 1.5631721669342369,
+        "python": 0.006682124920189381,
+        "rust": 0.0031122079817578197
+      },
+      "collection": {
+        "seconds": {
+          "stock": [
+            2.694273291970603,
+            2.3936052919598296,
+            2.1668889169814065
+          ],
+          "python": [
+            0.7586729170288891,
+            0.6298521249555051,
+            0.5631100410828367
+          ],
+          "rust": [
+            0.6551965000107884,
+            0.6742864999687299,
+            0.5266692079603672
+          ]
+        },
+        "median_seconds": {
+          "stock": 2.3936052919598296,
+          "python": 0.6298521249555051,
+          "rust": 0.6551965000107884
+        },
+        "rust_vs_stock": 3.6532632453323797,
+        "rust_vs_python": 0.9613179022554822
+      },
+      "full_run": {
+        "seconds": {
+          "stock": [
+            5.682668625027873,
+            5.79771820793394,
+            6.371204458991997
+          ],
+          "python": [
+            4.1150974170304835,
+            4.066555207944475,
+            5.401523458072916
+          ],
+          "rust": [
+            4.044487832929008,
+            4.242369540967047,
+            4.536346749984659
+          ]
+        },
+        "median_seconds": {
+          "stock": 5.79771820793394,
+          "python": 4.1150974170304835,
+          "rust": 4.242369540967047
+        },
+        "rust_vs_stock": 1.366622627271728,
+        "rust_vs_python": 0.9699997553943516
+      }
+    },
+    "unique": {
+      "count": 10000,
+      "parity": true,
+      "state": {
+        "stock": null,
+        "python": {
+          "status": "active",
+          "reason": "ASCII parameter ID deduplication",
+          "native_calls": 0,
+          "native_ids": 0,
+          "fallback_calls": 1
+        },
+        "rust": {
+          "status": "active",
+          "reason": "ASCII parameter ID deduplication",
+          "native_calls": 0,
+          "native_ids": 0,
+          "fallback_calls": 1
+        }
+      },
+      "component_seconds": {
+        "stock": [
+          0.0005345409736037254,
+          0.0017317919991910458,
+          0.0005274580325931311
+        ],
+        "python": [
+          0.0003790420014411211,
+          0.00037183309905231,
+          0.0003956250147894025
+        ],
+        "rust": [
+          0.0012755829375237226,
+          0.0016137500060722232,
+          0.0013018749887123704
+        ]
+      },
+      "component_median_seconds": {
+        "stock": 0.0005345409736037254,
+        "python": 0.0003790420014411211,
+        "rust": 0.0013018749887123704
+      },
+      "collection": {
+        "seconds": {
+          "stock": [
+            0.6456601250683889,
+            0.6451564580202103,
+            0.5868825840298086
+          ],
+          "python": [
+            0.6742247079964727,
+            0.6177240419201553,
+            0.6161013330565766
+          ],
+          "rust": [
+            0.6721447500167415,
+            0.6283741249935701,
+            0.6457868340658024
+          ]
+        },
+        "median_seconds": {
+          "stock": 0.6451564580202103,
+          "python": 0.6177240419201553,
+          "rust": 0.6457868340658024
+        },
+        "rust_vs_stock": 0.9990238635841747,
+        "rust_vs_python": 0.9565448060175417
+      },
+      "full_run": {
+        "seconds": {
+          "stock": [
+            4.915443208068609,
+            4.392751333070919,
+            4.271840750006959
+          ],
+          "python": [
+            4.826339624938555,
+            4.356182791991159,
+            4.134965291013941
+          ],
+          "rust": [
+            4.709808208979666,
+            4.476627500029281,
+            4.295713832951151
+          ]
+        },
+        "median_seconds": {
+          "stock": 4.392751333070919,
+          "python": 4.356182791991159,
+          "rust": 4.476627500029281
+        },
+        "rust_vs_stock": 0.98126353667849,
+        "rust_vs_python": 0.9730947665318739
+      }
+    },
+    "small": {
+      "count": 8,
+      "parity": true,
+      "state": {
+        "stock": null,
+        "python": {
+          "status": "active",
+          "reason": "ASCII parameter ID deduplication",
+          "native_calls": 0,
+          "native_ids": 0,
+          "fallback_calls": 1
+        },
+        "rust": {
+          "status": "active",
+          "reason": "ASCII parameter ID deduplication",
+          "native_calls": 0,
+          "native_ids": 0,
+          "fallback_calls": 1
+        }
+      },
+      "component_seconds": {
+        "stock": [
+          1.058308407664299e-05,
+          5.875015631318092e-06,
+          5.124951712787151e-06
+        ],
+        "python": [
+          7.750000804662704e-06,
+          6.458023563027382e-06,
+          6.66698906570673e-06
+        ],
+        "rust": [
+          3.875000402331352e-06,
+          3.2080570235848427e-06,
+          3.2499665394425392e-06
+        ]
+      },
+      "component_median_seconds": {
+        "stock": 5.875015631318092e-06,
+        "python": 6.66698906570673e-06,
+        "rust": 3.2499665394425392e-06
+      },
+      "collection": {
+        "seconds": {
+          "stock": [
+            0.22404908400494605,
+            0.2287008329294622,
+            0.21414983400609344
+          ],
+          "python": [
+            0.24123058305121958,
+            0.2178162920754403,
+            0.22302899998612702
+          ],
+          "rust": [
+            0.2126179999904707,
+            0.20736145903356373,
+            0.21540850005112588
+          ]
+        },
+        "median_seconds": {
+          "stock": 0.22404908400494605,
+          "python": 0.22302899998612702,
+          "rust": 0.2126179999904707
+        },
+        "rust_vs_stock": 1.053763481995822,
+        "rust_vs_python": 1.0489657507648595
+      },
+      "full_run": {
+        "seconds": {
+          "stock": [
+            0.22233337489888072,
+            0.26862591598182917,
+            0.26340766705106944
+          ],
+          "python": [
+            0.22628112498205155,
+            0.2560702080372721,
+            0.33016362495254725
+          ],
+          "rust": [
+            0.2264528749510646,
+            0.4688740409910679,
+            0.23893779201898724
+          ]
+        },
+        "median_seconds": {
+          "stock": 0.26340766705106944,
+          "python": 0.2560702080372721,
+          "rust": 0.23893779201898724
+        },
+        "rust_vs_stock": 1.1024110703682142,
+        "rust_vs_python": 1.0717024120526042
+      }
+    }
+  },
+  "environment": {
+    "platform": "macOS",
+    "architecture": "arm64",
+    "rust": "1.93.0",
+    "build": "release"
+  },
+  "limitations": [
+    "Synthetic duplicate-heavy workloads; not a general-suite speedup.",
+    "Three repetitions on a shared host; control timings are subject to scheduling noise.",
+    "Most gain is algorithmic. Rust improves the helper but has no demonstrated extra whole-suite benefit over optimized Python."
+  ]
+}
