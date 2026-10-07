@@ -4,8 +4,8 @@ Experimental Rust-powered acceleration for pytest.
 
 This alpha accelerates duplicate parameter-ID bookkeeping and repeated directory
 discovery while pytest keeps control of test collection, fixtures, execution, and
-reporting. Acceleration is
-opt-in and guarded by a tested pytest version and implementation fingerprint.
+reporting. Acceleration is opt-in and guarded by a tested pytest version and
+implementation fingerprint. See the [measured results](#performance-evidence).
 
 ## Try the alpha
 
@@ -90,34 +90,47 @@ An independent benchmark job retains raw timings and CPU/memory observations.
 
 ## Performance evidence
 
+Measured on Ubuntu 24.04, CPython 3.12.3, pytest 9.1.1 and Boorst 0.1.0a2.
+Times are medians of three fresh **full pytest runs**, including startup,
+collection, fixtures and execution. Percentages use unrounded medians.
+
+| Synthetic workload | Stock pytest | Boorst enabled | Time change |
+| --- | ---: | ---: | ---: |
+| 10,000 duplicate parameter IDs | 5.863 s | 4.546 s | 22.5% less |
+| 10,000 colliding numeric-suffix IDs | 5.659 s | 4.415 s | 22.0% less |
+| 384 explicit sibling test files | 9.875 s | 0.774 s | 92.2% less |
+| 10,000 unique IDs (control) | 4.370 s | 4.540 s | 3.9% more |
+| 8 IDs (control) | 0.173 s | 0.175 s | 1.0% more |
+
+| Optimization | Why it helps |
+| --- | --- |
+| Duplicate-ID bookkeeping | Avoids rebuilding the used-ID set for every collision; PyO3 accelerates the bounded helper. |
+| Directory-report reuse | Reuses a successful sibling-collector listing across file arguments, avoiding repeated scans and collector construction. This optimization uses Python. |
+
+Most ID savings come from the algorithm: the optimized Python comparison took
+4.738 s for duplicate IDs, versus 4.546 s with Rust. The isolated helper took
+6.06 ms in Python and 3.13 ms in Rust; helper timings describe only that component.
+Unique and small controls made zero native calls. Ordinary suites can see little
+benefit or overhead; these synthetic results do not predict overall project CI.
+
+Both harnesses verify exact ordered node IDs, setup/call/teardown outcomes and
+exit codes. The ID harness checks parity before timing; the discovery harness
+includes identical receipt recording during timing and disables bytecode writes
+for both modes. CI requires at least 10% duplicate-workload improvement and 5%
+directory-workload improvement. Separate compatibility tests cover callbacks,
+fixtures, errors, coverage, asyncio, xdist and fallback behavior.
+
+Sources: [ID measurements](benchmarks/results/alpha2-ids-ci.json),
+[directory measurements](benchmarks/results/alpha2-discovery-ci.json), and the
+[successful CI run](https://github.com/dnikolayev/pytest-boorst/actions/runs/37692487737).
+
+Reproduce with a release build:
+
 ```sh
-uv run --no-sync python benchmarks/run.py --size 10000 --repeats 7
-```
-
-The benchmark compares stock pytest, a linear-time Python implementation, and the
-Rust helper. It verifies exact ordered IDs and per-phase outcomes before timing,
-then runs collection and full execution in fresh, rotating-order subprocesses.
-Receipts include raw timings, source and native binary hashes, and native call counts.
-
-Stock's duplicate-ID collision loop repeatedly rebuilds a set. Removing that
-algorithmic cost is the main expected gain; Rust's separate contribution is
-measured against the optimized Python helper, including conversion overhead.
-Duplicate-heavy synthetic suites are the initial target. Ordinary suites can see
-little benefit. Component results alone do not establish a whole-suite speedup.
-
-```sh
+uv run --no-sync maturin develop --release --locked
+uv run --no-sync python benchmarks/run.py --size 10000 --repeats 3
 uv run --no-sync python benchmarks/discovery.py --repeats 3
 ```
 
-A first local paired trial over 384 synthetic sibling files reduced full-process
-time from 14.00 s to 1.09 s (92.2%), with identical ordered tests and phase outcomes.
-This is one file-heavy workload, not a forecast for ordinary suites or overall CI.
-The CI benchmark repeats the comparison and requires at least 5% improvement.
-
-The first local experiment reduced full-run time by 27–34% on 10,000 duplicate
-IDs. Most of this gain is algorithmic: Rust improved the helper over optimized
-Python, but did not demonstrate an additional whole-suite advantage. The unchanged
-async-unzip suite passed all 89 tests with exact outcome parity; it exercised no
-native batches, so it provides compatibility evidence only.
-
-See [benchmarks/README.md](benchmarks/README.md) for methodology and receipts.
+See [benchmark methodology](benchmarks/README.md) for detailed compatibility
+controls and earlier public-project measurements.

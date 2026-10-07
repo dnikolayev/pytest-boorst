@@ -1,0 +1,409 @@
+{
+  "python": "3.12.3",
+  "pytest": "9.1.1",
+  "package": "0.1.0a2",
+  "source_sha256": "58b8bf4049b30423336891d3abb26173d0492f8bc102a47f7e64725154a0f0f6",
+  "native_sha256": "e426eec58979080d97096aed29c1eb481d82e934f34b1f7bf58d519fd06c2891",
+  "size": 10000,
+  "repeats": 3,
+  "baseline": "installed package blocked with -p no:boorst",
+  "timing": "fresh subprocesses; receipt recording disabled during timings",
+  "scenarios": {
+    "duplicate": {
+      "count": 10000,
+      "parity": true,
+      "state": {
+        "stock": null,
+        "python": {
+          "status": "active",
+          "reason": "ASCII parameter ID deduplication",
+          "native_calls": 1,
+          "native_ids": 10000,
+          "fallback_calls": 0,
+          "discovery_status": "fallback",
+          "directory_reuses": 0
+        },
+        "rust": {
+          "status": "active",
+          "reason": "ASCII parameter ID deduplication",
+          "native_calls": 1,
+          "native_ids": 10000,
+          "fallback_calls": 0,
+          "discovery_status": "fallback",
+          "directory_reuses": 0
+        }
+      },
+      "component_seconds": {
+        "stock": [
+          0.9312405140000095,
+          0.9324906579999919,
+          0.9137988629999967
+        ],
+        "python": [
+          0.006098557999990817,
+          0.0060551450000048135,
+          0.006030408000000875
+        ],
+        "rust": [
+          0.00322741299999052,
+          0.003078482999995913,
+          0.0031271050000043488
+        ]
+      },
+      "component_median_seconds": {
+        "stock": 0.9312405140000095,
+        "python": 0.0060551450000048135,
+        "rust": 0.0031271050000043488
+      },
+      "collection": {
+        "seconds": {
+          "stock": [
+            1.7447393590000075,
+            1.6633569619999946,
+            1.6973476239999883
+          ],
+          "python": [
+            0.5396694780000075,
+            0.5328694720000016,
+            0.5204470729999997
+          ],
+          "rust": [
+            0.5278289110000003,
+            0.54650413600001,
+            0.5052929189999986
+          ]
+        },
+        "median_seconds": {
+          "stock": 1.6973476239999883,
+          "python": 0.5328694720000016,
+          "rust": 0.5278289110000003
+        },
+        "rust_vs_stock": 3.215715525669619,
+        "rust_vs_python": 1.009549611427028
+      },
+      "full_run": {
+        "seconds": {
+          "stock": [
+            5.789327460999999,
+            5.946000842999993,
+            5.862970525999998
+          ],
+          "python": [
+            4.737920963000008,
+            4.558509532000002,
+            4.789698045000009
+          ],
+          "rust": [
+            4.454965279999996,
+            4.713931471999999,
+            4.545812378999997
+          ]
+        },
+        "median_seconds": {
+          "stock": 5.862970525999998,
+          "python": 4.737920963000008,
+          "rust": 4.545812378999997
+        },
+        "rust_vs_stock": 1.2897519820846088,
+        "rust_vs_python": 1.0422605615857536
+      }
+    },
+    "collision": {
+      "count": 10000,
+      "parity": true,
+      "state": {
+        "stock": null,
+        "python": {
+          "status": "active",
+          "reason": "ASCII parameter ID deduplication",
+          "native_calls": 1,
+          "native_ids": 10000,
+          "fallback_calls": 0,
+          "discovery_status": "fallback",
+          "directory_reuses": 0
+        },
+        "rust": {
+          "status": "active",
+          "reason": "ASCII parameter ID deduplication",
+          "native_calls": 1,
+          "native_ids": 10000,
+          "fallback_calls": 0,
+          "discovery_status": "fallback",
+          "directory_reuses": 0
+        }
+      },
+      "component_seconds": {
+        "stock": [
+          0.8855463310000005,
+          0.8854829779999989,
+          0.8898463929999991
+        ],
+        "python": [
+          0.006196351999989247,
+          0.006214408999994703,
+          0.00627814199998511
+        ],
+        "rust": [
+          0.003333669999989297,
+          0.003273329999984753,
+          0.0033329789999925197
+        ]
+      },
+      "component_median_seconds": {
+        "stock": 0.8855463310000005,
+        "python": 0.006214408999994703,
+        "rust": 0.0033329789999925197
+      },
+      "collection": {
+        "seconds": {
+          "stock": [
+            1.629138495999996,
+            1.5773881169999981,
+            1.5928255309999884
+          ],
+          "python": [
+            0.5772278290000088,
+            0.507281010000014,
+            0.5407183360000261
+          ],
+          "rust": [
+            0.5792467830000021,
+            0.504692872999982,
+            0.5649358360000178
+          ]
+        },
+        "median_seconds": {
+          "stock": 1.5928255309999884,
+          "python": 0.5407183360000261,
+          "rust": 0.5649358360000178
+        },
+        "rust_vs_stock": 2.819480425029964,
+        "rust_vs_python": 0.9571322998883168
+      },
+      "full_run": {
+        "seconds": {
+          "stock": [
+            5.824007853000012,
+            5.458734228999987,
+            5.658863239999988
+          ],
+          "python": [
+            4.518938325999983,
+            4.563811536000003,
+            4.5777420440000185
+          ],
+          "rust": [
+            4.596743578999991,
+            4.415260711999991,
+            4.394588720999991
+          ]
+        },
+        "median_seconds": {
+          "stock": 5.658863239999988,
+          "python": 4.563811536000003,
+          "rust": 4.415260711999991
+        },
+        "rust_vs_stock": 1.2816600443593464,
+        "rust_vs_python": 1.0336448589765659
+      }
+    },
+    "unique": {
+      "count": 10000,
+      "parity": true,
+      "state": {
+        "stock": null,
+        "python": {
+          "status": "active",
+          "reason": "ASCII parameter ID deduplication",
+          "native_calls": 0,
+          "native_ids": 0,
+          "fallback_calls": 1,
+          "discovery_status": "fallback",
+          "directory_reuses": 0
+        },
+        "rust": {
+          "status": "active",
+          "reason": "ASCII parameter ID deduplication",
+          "native_calls": 0,
+          "native_ids": 0,
+          "fallback_calls": 1,
+          "discovery_status": "fallback",
+          "directory_reuses": 0
+        }
+      },
+      "component_seconds": {
+        "stock": [
+          0.0005442970000046898,
+          0.0005360140000050251,
+          0.0005295640000042567
+        ],
+        "python": [
+          0.000371651000023121,
+          0.0003798519999804739,
+          0.0003696480000030533
+        ],
+        "rust": [
+          0.0014378099999987626,
+          0.0014779389999830528,
+          0.001456406999977844
+        ]
+      },
+      "component_median_seconds": {
+        "stock": 0.0005360140000050251,
+        "python": 0.000371651000023121,
+        "rust": 0.001456406999977844
+      },
+      "collection": {
+        "seconds": {
+          "stock": [
+            0.5164502510000091,
+            0.5022904530000005,
+            0.5027068779999979
+          ],
+          "python": [
+            0.5082704920000083,
+            0.5003219759999809,
+            0.5080962059999763
+          ],
+          "rust": [
+            0.503434642000002,
+            0.504111249999994,
+            0.5061299820000045
+          ]
+        },
+        "median_seconds": {
+          "stock": 0.5027068779999979,
+          "python": 0.5080962059999763,
+          "rust": 0.504111249999994
+        },
+        "rust_vs_stock": 0.9972141625484531,
+        "rust_vs_python": 1.0079049138458671
+      },
+      "full_run": {
+        "seconds": {
+          "stock": [
+            4.505934300999996,
+            4.370022742999993,
+            4.358669838999987
+          ],
+          "python": [
+            4.4360115810000025,
+            4.438544777000004,
+            4.492150299000002
+          ],
+          "rust": [
+            4.539636963999982,
+            4.624149391000003,
+            4.467828139999995
+          ]
+        },
+        "median_seconds": {
+          "stock": 4.370022742999993,
+          "python": 4.438544777000004,
+          "rust": 4.539636963999982
+        },
+        "rust_vs_stock": 0.9626370517411291,
+        "rust_vs_python": 0.9777312177599984
+      }
+    },
+    "small": {
+      "count": 8,
+      "parity": true,
+      "state": {
+        "stock": null,
+        "python": {
+          "status": "active",
+          "reason": "ASCII parameter ID deduplication",
+          "native_calls": 0,
+          "native_ids": 0,
+          "fallback_calls": 1,
+          "discovery_status": "fallback",
+          "directory_reuses": 0
+        },
+        "rust": {
+          "status": "active",
+          "reason": "ASCII parameter ID deduplication",
+          "native_calls": 0,
+          "native_ids": 0,
+          "fallback_calls": 1,
+          "discovery_status": "fallback",
+          "directory_reuses": 0
+        }
+      },
+      "component_seconds": {
+        "stock": [
+          8.523000019522442e-06,
+          7.000999971751298e-06,
+          5.939000004673289e-06
+        ],
+        "python": [
+          8.762999982536712e-06,
+          7.791999962591944e-06,
+          7.580999977108149e-06
+        ],
+        "rust": [
+          3.956000000471249e-06,
+          3.0240000228332065e-06,
+          2.964000032079639e-06
+        ]
+      },
+      "component_median_seconds": {
+        "stock": 7.000999971751298e-06,
+        "python": 7.791999962591944e-06,
+        "rust": 3.0240000228332065e-06
+      },
+      "collection": {
+        "seconds": {
+          "stock": [
+            0.1663286990000188,
+            0.1702513310000029,
+            0.1731273729999998
+          ],
+          "python": [
+            0.1743685910000181,
+            0.17190537700000164,
+            0.17059202600000845
+          ],
+          "rust": [
+            0.17221496999999886,
+            0.17786120100001312,
+            0.17175447799999688
+          ]
+        },
+        "median_seconds": {
+          "stock": 0.1702513310000029,
+          "python": 0.17190537700000164,
+          "rust": 0.17221496999999886
+        },
+        "rust_vs_stock": 0.9885977450160345,
+        "rust_vs_python": 0.9982022875247302
+      },
+      "full_run": {
+        "seconds": {
+          "stock": [
+            0.171268007000009,
+            0.17320232299999816,
+            0.17366752300000599
+          ],
+          "python": [
+            0.17445771299998114,
+            0.17592185300003393,
+            0.17431770600001073
+          ],
+          "rust": [
+            0.1748576669999693,
+            0.17605424900000344,
+            0.17471352199999046
+          ]
+        },
+        "median_seconds": {
+          "stock": 0.17320232299999816,
+          "python": 0.17445771299998114,
+          "rust": 0.1748576669999693
+        },
+        "rust_vs_stock": 0.9905331917760779,
+        "rust_vs_python": 0.9977126882289455
+      }
+    }
+  }
+}
