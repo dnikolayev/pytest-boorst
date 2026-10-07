@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import importlib.metadata
+import inspect
 import json
 import os
 import statistics
@@ -110,13 +111,21 @@ def microbenchmark(ids: list[str], repeats: int) -> dict:
     from pytest_boorst import _native
     from pytest_boorst._ids import unique_ids
 
+    extra = (
+        {"func_name": "test_value"}
+        if "func_name" in inspect.signature(IdMaker).parameters
+        else {}
+    )
     maker = IdMaker(
-        ["value"],
-        [ParameterSet.param(index, id=name) for index, name in enumerate(ids)],
-        None,
-        None,
-        None,
-        "test_value",
+        argnames=["value"],
+        parametersets=[
+            ParameterSet.param(index, id=name) for index, name in enumerate(ids)
+        ],
+        idfn=None,
+        ids=None,
+        config=None,
+        nodeid="test_value",
+        **extra,
     )
 
     # Bind the original resolved-ID tail so callbacks/ID generation are excluded

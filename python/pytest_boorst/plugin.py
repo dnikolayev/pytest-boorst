@@ -57,7 +57,7 @@ def pytest_configure(config):
         return
     state.update(status="fallback", reason="unsupported interpreter or pytest version")
     if (
-        pytest.__version__ != "9.1.1"
+        pytest.__version__ not in {"9.0.2", "9.0.3", "9.1.1"}
         or sys.implementation.name != "cpython"
         or not (3, 10) <= sys.version_info[:2] <= (3, 14)
         or sysconfig.get_config_var("Py_GIL_DISABLED")

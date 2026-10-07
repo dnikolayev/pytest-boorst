@@ -30,6 +30,11 @@ def make_ids(ids, *, config=None, idfn=None, strict=False):
     if config is None:
         config = SimpleNamespace()
     config.getini = options.__getitem__
+    extra = (
+        {"func_name": "test_example"}
+        if "func_name" in inspect.signature(IdMaker).parameters
+        else {}
+    )
     return IdMaker(
         argnames=["value"],
         parametersets=[ParameterSet.param(index) for index in range(len(ids))],
@@ -37,6 +42,7 @@ def make_ids(ids, *, config=None, idfn=None, strict=False):
         ids=ids if idfn is None else None,
         config=config,
         nodeid="test_example",
+        **extra,
     )
 
 
@@ -193,7 +199,7 @@ def test_error_parity(config, monkeypatch, strict, hidden):
 def test_unsupported_activation_leaves_method_alone(config, monkeypatch, unsupported):
     monkeypatch.setenv("PYTEST_BOORST", "1")
     if unsupported == "version":
-        monkeypatch.setattr(pytest, "__version__", "0.0")
+        monkeypatch.setattr(pytest, "__version__", "9.0.1")
     elif unsupported == "patched":
         monkeypatch.setattr(IdMaker, "make_unique_parameterset_ids", lambda self: [])
     elif unsupported == "source":
