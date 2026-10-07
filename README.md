@@ -69,7 +69,7 @@ controller can report zero native calls.
 Install uv and Rust, then:
 
 ```sh
-uv sync --locked
+uv sync --locked --python 3.14
 uv run --no-sync maturin develop --release --locked
 uv run --no-sync ruff check .
 uv run --no-sync ruff format --check .
@@ -124,9 +124,14 @@ Sources: [ID measurements](benchmarks/results/alpha2-ids-ci.json),
 [directory measurements](benchmarks/results/alpha2-discovery-ci.json), and the
 [successful CI run](https://github.com/dnikolayev/pytest-boorst/actions/runs/37692487737).
 
-Reproduce with a release build:
+The benchmark job uses CPython 3.14.8. The table above remains the recorded
+Python 3.12 measurement until a new receipt is available. Existing projects can
+keep their own Python version.
+
+Reproduce with Python 3.14 and a release build:
 
 ```sh
+uv sync --locked --python 3.14
 uv run --no-sync maturin develop --release --locked
 uv run --no-sync python benchmarks/run.py --size 10000 --repeats 3
 uv run --no-sync python benchmarks/discovery.py --repeats 3
