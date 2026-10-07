@@ -2,8 +2,9 @@
 
 Experimental Rust-powered acceleration for pytest.
 
-This alpha accelerates duplicate parameter-ID bookkeeping while pytest keeps
-control of test collection, fixtures, execution, and reporting. Acceleration is
+This alpha accelerates duplicate parameter-ID bookkeeping and repeated directory
+discovery while pytest keeps control of test collection, fixtures, execution, and
+reporting. Acceleration is
 opt-in and guarded by a tested pytest version and implementation fingerprint.
 
 ## Try the alpha
@@ -12,7 +13,7 @@ Download a wheel matching your platform from this repository's GitHub Actions
 artifacts, then install it into an isolated environment with your project dependencies:
 
 ```sh
-uv pip install ./pytest_boorst-0.1.0a1-<wheel-tags>.whl
+uv pip install ./pytest_boorst-0.1.0a2-<wheel-tags>.whl
 PYTEST_BOORST=1 uv run --no-sync pytest
 ```
 
@@ -26,10 +27,10 @@ the Linux artifacts currently target the native CI runner's platform.
 
 ## Compatibility boundary
 
-The adapter currently accelerates **pytest 9.0.2, 9.0.3, and 9.1.1 on CPython
+The parameter-ID adapter currently accelerates **pytest 9.0.2, 9.0.3, and 9.1.1 on CPython
 3.10–3.14 with the GIL enabled**. It checks the original method's source fingerprint
 before changing it and restores its owned patch at session cleanup. Other pytest versions,
-modified methods, and missing or unloadable native extensions use stock pytest.
+modified methods, and missing or unloadable native extensions use stock parameter IDs.
 Installation does not require changing an already-installed pytest version.
 On older releases without pytest's Stash API, the plugin falls back quietly.
 
@@ -39,14 +40,29 @@ errors use pytest behavior. Pytest still resolves custom IDs and calls user hook
 exactly once. Unexpected native computation errors propagate rather than rerunning
 callbacks or hiding a bug.
 
+On **pytest 9.1.1, CPython 3.10–3.14, Linux and macOS**, directory discovery can
+reuse a successful report when at least 32 distinct `.py` files in one directory
+are passed as plain arguments. This Python optimization avoids recreating every
+sibling collector for each requested file. It needs no native extension and does
+not change the arguments, import unrequested tests, or replace file collection.
+
+Directory reuse requires verified stock directory methods and discovery/report
+hooks. Custom discovery/report hooks, modified methods, selectors, duplicate paths, symlinks,
+mixed directories, doctest-module mode, last-failed/failed-first modes, and debug
+tracing use stock discovery. Changed hooks, plugins, or collection options stop
+reuse; changed directory metadata invalidates the report. Windows currently uses
+stock discovery. Plugins inspecting discarded collectors or pytest's private
+collection-cache layout are outside this experimental compatibility boundary.
+
 This uses a narrowly guarded private pytest method. The tested compatibility
 boundary does not establish compatibility with every possible third-party plugin
 or modification of pytest internals. Tests cover ordered IDs, phase outcomes,
 coverage, asyncio, xdist, callbacks, errors, and repeated invocation.
 
 On releases with the Stash API, the header reports activation or fallback.
-The summary reports native ID batches and stock batches. Counters are per process;
-xdist workers collect their own batches, so the controller can report zero native calls.
+The summary reports native ID batches, stock batches, and reused directory reports.
+Counters are per process; xdist workers collect their own batches, so the
+controller can report zero native calls.
 
 ## Development
 
@@ -88,6 +104,15 @@ algorithmic cost is the main expected gain; Rust's separate contribution is
 measured against the optimized Python helper, including conversion overhead.
 Duplicate-heavy synthetic suites are the initial target. Ordinary suites can see
 little benefit. Component results alone do not establish a whole-suite speedup.
+
+```sh
+uv run --no-sync python benchmarks/discovery.py --repeats 3
+```
+
+A first local paired trial over 384 synthetic sibling files reduced full-process
+time from 14.00 s to 1.09 s (92.2%), with identical ordered tests and phase outcomes.
+This is one file-heavy workload, not a forecast for ordinary suites or overall CI.
+The CI benchmark repeats the comparison and requires at least 5% improvement.
 
 The first local experiment reduced full-run time by 27–34% on 10,000 duplicate
 IDs. Most of this gain is algorithmic: Rust improved the helper over optimized

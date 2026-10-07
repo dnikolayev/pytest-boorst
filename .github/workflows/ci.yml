@@ -134,6 +134,7 @@ jobs:
       - run: uv run --no-sync maturin develop --release --locked
       - run: uv run --no-sync python benchmarks/run.py --size 10000 --repeats 3
       - run: uv run --no-sync python benchmarks/memory.py --repeats 3
+      - run: uv run --no-sync python benchmarks/discovery.py --repeats 3
       - name: Verify target and native helper timings
         run: |
           uv run --no-sync python - <<'PY'
@@ -149,6 +150,10 @@ jobs:
           for control in ("unique", "small"):
               if result["scenarios"][control]["state"]["rust"]["native_calls"] != 0:
                   raise SystemExit(f"Native helper unexpectedly used by {control}")
+          discovery = json.load(open("benchmark-results-discovery.json"))
+          times = discovery["median_seconds"]
+          if times["enabled"] > times["stock"] * 0.95:
+              raise SystemExit(f"Directory discovery target not met: {times}")
           PY
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
