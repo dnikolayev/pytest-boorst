@@ -112,3 +112,12 @@ a Python directory-report optimization, separate from Rust parameter-ID work.
 It still performs pytest's ordinary file import, collection, fixtures, and test
 execution, and still scans cached report contents to match each requested file.
 Directory arguments and execution-heavy workloads can see little benefit.
+
+## Alpha 2 CI snapshot
+
+The README's compact comparison uses the three-repeat Ubuntu 24.04 / CPython
+3.12.3 / pytest 9.1.1 [CI run](https://github.com/dnikolayev/pytest-boorst/actions/runs/37692487737).
+[ID receipt](results/alpha2-ids-ci.json) and
+[directory receipt](results/alpha2-discovery-ci.json) retain every timing sample,
+parity result, activation counter and source digest. The observed control
+overheads are included in the README table; no general suite-speedup claim is made.
