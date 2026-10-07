@@ -77,11 +77,21 @@ jobs:
             uv pip install --python "$legacy_env/bin/python" --only-binary :all: dist/*.whl
             "$legacy_env/bin/python" scripts/smoke.py --expect fallback --pytest-version "$pytest_version"
           done
+      - name: Verify stable pytest versions with the installed wheel
+        if: matrix.os == 'ubuntu-24.04' && matrix.python == '3.12'
+        run: |
+          for pytest_version in 9.0.2 9.0.3; do
+            uv pip install "pytest==$pytest_version"
+            uv pip install --only-binary :all: dist/*.whl
+            uv run --no-sync pytest -q
+            uv run --no-sync python scripts/smoke.py --pytest-version "$pytest_version"
+          done
       - name: Check unsupported pytest fallback
         if: matrix.os == 'ubuntu-24.04' && matrix.python == '3.12'
         run: |
-          uv pip install pytest==9.0.2
-          uv run --no-sync python scripts/smoke.py --expect fallback --pytest-version 9.0.2
+          uv pip install pytest==8.4.2
+          uv pip install --only-binary :all: dist/*.whl
+          uv run --no-sync python scripts/smoke.py --expect fallback --pytest-version 8.4.2
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: wheel-${{ matrix.os }}-py${{ matrix.python }}

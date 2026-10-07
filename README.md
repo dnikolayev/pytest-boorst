@@ -26,9 +26,9 @@ the Linux artifacts currently target the native CI runner's platform.
 
 ## Compatibility boundary
 
-The adapter currently accelerates **pytest 9.1.1 on CPython 3.10–3.14 with the
-GIL enabled**. It checks the original method's source fingerprint before changing
-it and restores its owned patch at session cleanup. Other pytest versions,
+The adapter currently accelerates **pytest 9.0.2, 9.0.3, and 9.1.1 on CPython
+3.10–3.14 with the GIL enabled**. It checks the original method's source fingerprint
+before changing it and restores its owned patch at session cleanup. Other pytest versions,
 modified methods, and missing or unloadable native extensions use stock pytest.
 Installation does not require changing an already-installed pytest version.
 On older releases without pytest's Stash API, the plugin falls back quietly.
@@ -66,6 +66,8 @@ cargo test --locked --lib
 `uv.lock` and `Cargo.lock` pin the development environments. Maturin builds the
 PyO3 extension. GitHub CI installs built wheels and tests Python 3.10–3.14 on Linux,
 plus macOS and Windows smoke coverage, and rebuilds the source distribution.
+The Linux Python 3.12 wheel lane also runs the complete suite and installed-wheel
+smoke checks with pytest 9.0.2 and 9.0.3, and verifies stock fallback on pytest 8.4.2.
 Normal wheel-installation checks preserve pytest 6.2.5 and 7.4.4 in separate
 environments and compare fallback IDs and phase outcomes against stock pytest.
 An independent benchmark job retains raw timings and CPU/memory observations.

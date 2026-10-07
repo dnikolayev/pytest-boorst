@@ -7,6 +7,11 @@ uv run --no-sync maturin develop --release --locked
 uv run --no-sync python benchmarks/run.py --size 10000 --repeats 7
 ```
 
+The adapter supports pytest 9.0.2, 9.0.3, and 9.1.1. Use a separate environment
+for each version, install the built wheel without changing that version, and run
+the same harness. Each receipt identifies its installed pytest version; the
+initial observations below apply only to pytest 9.1.1.
+
 Run the experiment while other builds and benchmarks are idle. The command creates
 synthetic suites in a temporary directory and removes them when it finishes.
 
