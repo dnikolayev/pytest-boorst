@@ -1,0 +1,137 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+        with:
+          version: "0.12.12"
+          python-version: "3.12"
+          enable-cache: true
+      - uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@49a0bdc70d2e1b713ca9e2869b211fcce03d3c1c # v2
+      - run: uv sync --locked --no-install-project
+      - run: uv run --no-sync ruff check .
+      - run: uv run --no-sync ruff format --check .
+      - run: cargo fmt --check
+      - run: cargo clippy --locked --all-targets -- -D warnings
+      - run: cargo test --locked --lib
+
+  wheels:
+    name: Wheel / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04]
+        python: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        include:
+          - os: macos-14
+            python: "3.12"
+          - os: windows-latest
+            python: "3.12"
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+        with:
+          version: "0.12.12"
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+      - uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
+      - uses: Swatinem/rust-cache@49a0bdc70d2e1b713ca9e2869b211fcce03d3c1c # v2
+      - run: uv sync --locked --no-install-project
+      - run: uv run --no-sync maturin build --release --locked --out dist
+      - name: Install the wheel into the clean test environment
+        run: |
+          uv pip install --no-deps --only-binary :all: dist/*.whl
+      - run: uv run --no-sync pytest -q
+      - name: Check unsupported pytest fallback
+        if: matrix.os == 'ubuntu-24.04' && matrix.python == '3.12'
+        run: |
+          uv pip install pytest==9.0.2
+          uv run --no-sync python scripts/smoke.py --expect fallback
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: wheel-${{ matrix.os }}-py${{ matrix.python }}
+          path: dist/*.whl
+          if-no-files-found: error
+
+  sdist:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+        with:
+          version: "0.12.12"
+          python-version: "3.12"
+          enable-cache: true
+      - uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
+      - run: uv sync --locked --no-install-project
+      - run: uv run --no-sync maturin sdist --out dist
+      - name: Build a wheel from the source distribution
+        run: uv build dist/*.tar.gz --wheel --out-dir rebuilt
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: source-distribution
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  benchmark:
+    needs: quality
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+        with:
+          version: "0.12.12"
+          python-version: "3.12"
+          enable-cache: true
+      - uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
+      - uses: Swatinem/rust-cache@49a0bdc70d2e1b713ca9e2869b211fcce03d3c1c # v2
+      - run: uv sync --locked --no-install-project
+      - run: uv run --no-sync maturin develop --release --locked
+      - run: uv run --no-sync python benchmarks/run.py --size 10000 --repeats 3
+      - run: uv run --no-sync python benchmarks/memory.py --repeats 3
+      - name: Verify target and native helper timings
+        run: |
+          uv run --no-sync python - <<'PY'
+          import json
+          result = json.load(open("benchmark-results.json"))
+          target = result["scenarios"]["duplicate"]
+          times = target["full_run"]["median_seconds"]
+          if times["rust"] > times["stock"] * 0.9:
+              raise SystemExit(f"Duplicate target not met: {times}")
+          component = target["component_median_seconds"]
+          if component["rust"] >= component["python"]:
+              raise SystemExit(f"Native helper target not met: {component}")
+          for control in ("unique", "small"):
+              if result["scenarios"][control]["state"]["rust"]["native_calls"] != 0:
+                  raise SystemExit(f"Native helper unexpectedly used by {control}")
+          PY
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: benchmark-evidence
+          path: benchmark-results*.json
+          if-no-files-found: warn
