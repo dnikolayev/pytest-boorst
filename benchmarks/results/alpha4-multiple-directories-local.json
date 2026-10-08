@@ -1,0 +1,73 @@
+{
+  "python": "3.14.7",
+  "pytest": "9.1.1",
+  "package": "0.1.0a4",
+  "package_source_sha256": {
+    "__init__.py": "57ff458c01dea4078a75c72f796dedb8413390507fa1d9fb5e65492ba0dc61d4",
+    "_discovery.py": "1632d146b93bc6f53a8b430f6c9eb3296d2ba3a84ae34cace1c62df975f431be",
+    "_ids.py": "147556baa7aacd483840c9b11d23ade4818ddc016d8fdfb7e11a741695ee868a",
+    "plugin.py": "e04c66e4d2744f377e9da855827083c9822468f38f4bbf6cfa5da5da52e896ee"
+  },
+  "benchmark_sha256": "fc1f67d04cce581d45603f7a78266848c7aeb46360f0049524008d50e2a923e3",
+  "files": 384,
+  "package_directory": false,
+  "directories": 4,
+  "repeats": 3,
+  "baseline": "installed package blocked with -p no:boorst",
+  "timing": "fresh full-run subprocesses; receipts included; bytecode writes off",
+  "parity": true,
+  "parity_sha256": "5f7462b8da68188bc30c04defe27b1eaa43bf6a55c53b22645c22d1bab23a110",
+  "seconds": {
+    "stock": [
+      2.1739393330644816,
+      1.963184459018521,
+      1.9255262500373647
+    ],
+    "enabled": [
+      1.0583197079831734,
+      0.9729726250516251,
+      0.8006196249043569
+    ]
+  },
+  "median_seconds": {
+    "stock": 1.963184459018521,
+    "enabled": 0.9729726250516251
+  },
+  "improvement_percent": 50.439062382449016,
+  "state": {
+    "stock": [
+      null,
+      null,
+      null
+    ],
+    "enabled": [
+      {
+        "status": "fallback",
+        "reason": "native extension unavailable",
+        "native_calls": 0,
+        "native_ids": 0,
+        "fallback_calls": 0,
+        "discovery_status": "active",
+        "directory_reuses": 380
+      },
+      {
+        "status": "fallback",
+        "reason": "native extension unavailable",
+        "native_calls": 0,
+        "native_ids": 0,
+        "fallback_calls": 0,
+        "discovery_status": "active",
+        "directory_reuses": 380
+      },
+      {
+        "status": "fallback",
+        "reason": "native extension unavailable",
+        "native_calls": 0,
+        "native_ids": 0,
+        "fallback_calls": 0,
+        "discovery_status": "active",
+        "directory_reuses": 380
+      }
+    ]
+  }
+}

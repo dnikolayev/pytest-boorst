@@ -41,12 +41,19 @@ def main():
     parser.add_argument("--files", type=int, default=384)
     parser.add_argument("--repeats", type=int, default=1)
     parser.add_argument("--package", action="store_true")
+    parser.add_argument("--directories", type=int, default=1)
     parser.add_argument(
         "--output", type=Path, default=Path("benchmark-results-discovery.json")
     )
     args = parser.parse_args()
-    if args.files < 64 or args.repeats < 1:
-        parser.error("use files >= 64 and repeats >= 1")
+    if (
+        args.files < 64
+        or args.repeats < 1
+        or args.directories < 1
+        or args.files % args.directories
+        or args.files // args.directories < 32
+    ):
+        parser.error("use files >= 64, repeats >= 1, and >=32 files per directory")
     version = importlib.metadata.version("pytest")
     if version != "9.1.1":
         parser.error("discovery acceleration currently requires pytest 9.1.1")
@@ -66,6 +73,7 @@ def main():
         "benchmark_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "files": args.files,
         "package_directory": args.package,
+        "directories": args.directories,
         "repeats": args.repeats,
         "baseline": "installed package blocked with -p no:boorst",
         "timing": "fresh full-run subprocesses; receipts included; bytecode writes off",
@@ -84,9 +92,22 @@ def main():
         )
         tests = directory / "tests"
         tests.mkdir()
+        parents = [tests]
+        if args.directories > 1:
+            parents = [tests / f"group_{group:02}" for group in range(args.directories)]
+            for parent in parents:
+                parent.mkdir()
         if args.package:
-            (tests / "__init__.py").write_text("", encoding="utf-8")
-        paths = [f"tests/test_{number:04}.py" for number in range(args.files)]
+            for parent in parents:
+                (parent / "__init__.py").write_text("", encoding="utf-8")
+        paths = [
+            str(
+                (
+                    parents[number % args.directories] / f"test_{number:04}.py"
+                ).relative_to(directory)
+            )
+            for number in range(args.files)
+        ]
         for path in paths:
             (directory / path).write_text(
                 "def test_answer(answer):\n    assert answer == 42\n", encoding="utf-8"

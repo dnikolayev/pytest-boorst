@@ -129,3 +129,17 @@ The earlier CPython 3.12.3 snapshot is retained in the
 [CI run](https://github.com/dnikolayev/pytest-boorst/actions/runs/37692487737).
 Different runners and interpreter versions prevent using these snapshots as a
 controlled Python-version comparison.
+
+## Multiple explicit directories
+
+```sh
+uv run --no-sync python benchmarks/discovery.py --directories 4 --repeats 3 --output benchmark-results-multiple-directories.json
+```
+
+The same full-run harness splits 384 files into four groups of 96 and interleaves
+the arguments. Successful reports are retained separately for each exact
+directory collector; per-directory metadata and the same session/option/hook
+guards still apply. Selected parents that contain one another use stock discovery
+to preserve pytest's fixture registration order. Groups below 32 files use stock discovery. CI requires at
+least 5% full-run improvement for this workload as well as the single-directory
+workload. Raw receipts report exact parity and the reuse count.
