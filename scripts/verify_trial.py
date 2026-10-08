@@ -58,7 +58,7 @@ def main():
         (root / "uv.lock").write_text("unchanged example lock\n", encoding="utf-8")
         driver = root / "check.py"
         driver.write_text(
-            "import importlib.metadata, importlib.util, json, os, sys\n"
+            "import importlib.metadata, importlib.util, json, os, subprocess, sys\n"
             "from pathlib import Path\n"
             "assert Path(sys.prefix).resolve() == (Path.cwd() / '.venv').resolve()\n"
             "def versions():\n"
@@ -84,8 +84,22 @@ def main():
             "assert state.get('directory_reuses', 0) == (0 if sys.platform == 'win32' else 62)\n"
             "sys.argv = ['try.py', '-q', 'test_sample.py::test_fail']\n"
             "assert trial.main() == 1\n"
+            "env = os.environ.copy()\n"
+            "env.pop('PYTEST_BOORST', None)\n"
+            "command = ['uv', 'run', '--no-sync', 'python', '-m', 'pytest_boorst']\n"
+            "paths = [f'cases_{g}/test_{g}_{i:02d}.py' for i in range(32) for g in range(2)]\n"
+            "assert subprocess.run(command + ['-q', '-W', 'error::pytest.PytestAssertRewriteWarning', 'test_sample.py::test_pass'], env=env).returncode == 0\n"
+            "state = json.loads(Path('state.json').read_text())\n"
+            f"assert state.get('native_calls', 0) == int({args.expect_native!r})\n"
+            "assert subprocess.run(command + ['-q', *paths], env=env).returncode == 0\n"
+            "state = json.loads(Path('state.json').read_text())\n"
+            "assert state.get('directory_reuses', 0) == (0 if sys.platform == 'win32' else 62)\n"
+            "assert subprocess.run(command + ['-q', 'test_sample.py::test_fail'], env=env).returncode == 1\n"
+            "assert subprocess.run(command + ['-q', '-p', 'no:boorst', 'test_sample.py::test_pass'], env=env).returncode == 0\n"
+            "assert json.loads(Path('state.json').read_text()) == {}\n"
             "assert versions() == after\n"
-            "print('Trial verified: arguments, exit status, unchanged pytest/dependencies/configuration')\n",
+            "assert all(Path(p).read_bytes() == data for p, data in files.items())\n"
+            "print('Trial and module verified: arguments, exit status, opt-out, unchanged dependencies/configuration')\n",
             encoding="utf-8",
         )
         handler = partial(SimpleHTTPRequestHandler, directory=str(root))

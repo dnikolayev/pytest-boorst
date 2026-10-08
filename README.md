@@ -9,28 +9,35 @@ implementation fingerprint. See the [measured results](#performance-evidence).
 
 ## Try the alpha
 
-With uv installed, run this command from your project with its test dependencies
-already installed in its virtual environment. It works in POSIX shells and PowerShell:
+From your project directory, with its test dependencies already installed in its
+virtual environment, install from PyPI and run with uv:
 
 ```sh
-uv run --no-sync https://raw.githubusercontent.com/dnikolayev/pytest-boorst/v0.1.0a5/scripts/try.py
+uv pip install --no-deps pytest-boorst==0.1.0a6
+uv run --no-sync python -m pytest_boorst
 ```
 
-Append your usual pytest arguments, such as `-q tests/`. The launcher installs the
-pinned GitHub release using a compatible wheel and enables Boorst for that pytest
-process. It preserves the existing Python, pytest, dependencies, project configuration,
-and lockfile. An already-installed matching alpha needs no wheel download or reinstallation.
+Or, with your project's virtual environment activated, use pip:
+
+```sh
+python -m pip install --no-deps pytest-boorst==0.1.0a6
+python -m pytest_boorst
+```
+
+Both work in POSIX shells and PowerShell. Append your usual pytest arguments,
+such as `-q tests/`, to the run command. `--no-deps` preserves your installed pytest
+and other dependencies. The module enables Boorst only for that pytest process,
+uses your existing Python and pytest configuration, and leaves your lockfile unchanged.
 
 Native wheels cover macOS Intel/ARM64, Windows x86-64/x86/ARM64, and Linux
-glibc/musl on x86-64/x86/ARM64. See the [platform matrix](CONTRIBUTING.md#platform-wheels).
+glibc/musl on x86-64/x86/ARM64. See the [platform matrix](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a6/CONTRIBUTING.md#platform-wheels).
 Other platforms can install the universal Python wheel: it retains the guarded
 directory optimization on supported Linux/macOS environments and uses stock IDs.
 
 Boorst remains disabled for ordinary pytest runs unless `PYTEST_BOORST=1`. Use
 `-p no:boorst` to prevent plugin loading; uninstalling the package restores ordinary
-pytest behavior. The launcher respects plugin-autoload settings.
+pytest behavior. The module command respects plugin-autoload settings.
 
-You can also install the pinned alpha from PyPI with `uv pip install pytest-boorst==0.1.0a5`.
 [GitHub releases](https://github.com/dnikolayev/pytest-boorst/releases) trigger the full CI
 matrix, then publish its tested distributions to PyPI using Trusted Publishing.
 Release assets contain the same wheels, source distribution and SHA-256 manifest.
@@ -134,8 +141,8 @@ fixtures, errors, coverage, asyncio, xdist and fallback behavior. Multi-director
 checks include interleaved groups, directory-local fixtures, syntax errors,
 independent directory invalidation and stock fallback for overlapping groups.
 
-Sources: [ID measurements](benchmarks/results/alpha2-python314-ids-ci.json),
-[directory measurements](benchmarks/results/alpha2-python314-discovery-ci.json), and the
+Sources: [ID measurements](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a6/benchmarks/results/alpha2-python314-ids-ci.json),
+[directory measurements](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a6/benchmarks/results/alpha2-python314-discovery-ci.json), and the
 [successful CI run](https://github.com/dnikolayev/pytest-boorst/actions/runs/37696156274).
 
 Alpha 4 also covers independent sibling groups. A macOS ARM64 / CPython
@@ -145,14 +152,14 @@ Alpha 4 also covers independent sibling groups. A macOS ARM64 / CPython
 | --- | ---: | ---: | ---: |
 | 384 files across four directories | 1.963 s | 0.973 s | 50.4% less |
 
-[Raw measurements](benchmarks/results/alpha4-multiple-directories-local.json)
+[Raw measurements](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a6/benchmarks/results/alpha4-multiple-directories-local.json)
 record exact ordered-ID, phase and exit-code parity, with 380 directory reuses and
 zero native ID calls per run. This measures the Python discovery optimization.
 Alpha 3 uses stock discovery for this multi-directory plan. CI repeats the four-directory
 workload on Python 3.14.8 and retains its own raw receipt.
 
 The benchmark job uses CPython 3.14.8. Existing projects can keep their own
-Python version; the trial launcher uses their existing environment.
+Python version; the module command uses their existing environment.
 
 Reproduce with Python 3.14 and a release build:
 
@@ -164,5 +171,5 @@ uv run --no-sync python benchmarks/discovery.py --repeats 3
 uv run --no-sync python benchmarks/discovery.py --directories 4 --repeats 3 --output benchmark-results-multiple-directories.json
 ```
 
-See [benchmark methodology](benchmarks/README.md) for detailed compatibility
+See [benchmark methodology](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a6/benchmarks/README.md) for detailed compatibility
 controls and earlier public-project measurements.

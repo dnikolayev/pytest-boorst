@@ -31,7 +31,8 @@ Python 3.10 through 3.14.
 | Linux with musl | x86-64, x86, ARM64 | musllinux 1.2 (Alpine and similar) |
 
 Every platform job installs its wheel, runs the compatibility suite, compares
-native execution with stock pytest, and verifies the portable trial command.
+native execution with stock pytest, and verifies the installed module command and
+portable trial command.
 Linux wheels are tested inside the matching pinned PyPA runtime, including musl.
 ARM64 jobs use native ARM64 runners; x86 jobs run 32-bit Python on x86-64 hosts.
 The universal Python wheel remains available as a fallback. This matrix describes
@@ -40,7 +41,7 @@ CI builds; released files are listed on each release page.
 ## Publishing
 
 Bump the Python version in `pyproject.toml`, `uv.lock` and `scripts/try.py`, the Rust
-version in `Cargo.toml` and `Cargo.lock`, and the pinned README command together.
+version in `Cargo.toml` and `Cargo.lock`, and the pinned README commands and links together.
 After the version change passes PR CI and lands on `main`, publish a GitHub release
 with the exact `v<Python version>` tag. Stable and prerelease publications both
 trigger `.github/workflows/publish.yml`.
