@@ -132,11 +132,18 @@ class _ResolvedIds:
 
 
 def pytest_addoption(parser):
-    parser.getgroup("boorst").addoption(
+    group = parser.getgroup("boorst")
+    group.addoption(
         "--boorst",
         action="store_true",
         default=False,
         help="Enable guarded Boorst acceleration for this pytest run.",
+    )
+    group.addoption(
+        "--boorst-profile",
+        action="store_true",
+        default=False,
+        help="Report collection and execution timings without enabling acceleration.",
     )
 
 
@@ -149,6 +156,10 @@ def _enabled(config):
 def pytest_configure(config):
     if STATE_KEY is None:
         return
+    if config.getoption("boorst_profile", default=False):
+        from ._profile import install
+
+        install(config)
     state = {
         "status": "disabled",
         "reason": "use --boorst or set PYTEST_BOORST=1 to enable the alpha",

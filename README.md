@@ -15,14 +15,14 @@ From your project directory, with its test dependencies already installed in its
 virtual environment, install from PyPI and run with uv:
 
 ```sh
-uv pip install --no-deps pytest-boorst==0.1.0a8
+uv pip install --no-deps pytest-boorst==0.1.0a9
 uv run --no-sync pytest --boorst -q tests/
 ```
 
 Or, with your project's virtual environment activated, use pip:
 
 ```sh
-python -m pip install --no-deps pytest-boorst==0.1.0a8
+python -m pip install --no-deps pytest-boorst==0.1.0a9
 pytest --boorst -q tests/
 ```
 
@@ -33,11 +33,11 @@ enables guarded acceleration for that pytest run, using your existing configurat
 and leaving your lockfile unchanged.
 
 Native wheels cover macOS Intel/ARM64, Windows x86-64/x86/ARM64, and Linux
-glibc/musl on x86-64/x86/ARM64. See the [platform matrix](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a8/CONTRIBUTING.md#platform-wheels).
+glibc/musl on x86-64/x86/ARM64. See the [platform matrix](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a9/CONTRIBUTING.md#platform-wheels).
 Other platforms can install the universal Python wheel: it retains the guarded
 directory optimization on supported Linux/macOS environments and uses stock IDs.
 
-Boorst stays disabled when `--boorst` is omitted and `PYTEST_BOORST=1` is unset. Use
+Acceleration stays disabled when `--boorst` is omitted and `PYTEST_BOORST=1` is unset. Use
 `-p no:boorst` to prevent plugin loading; uninstalling the package restores ordinary
 pytest behavior. If plugin autoload is disabled, load it explicitly with
 `pytest -p boorst --boorst -q tests/`.
@@ -112,6 +112,36 @@ work across workers: each worker normally collects the suite, so the same batch 
 be counted more than once. Worker totals exclude controller-local counters. A worker
 that crashes before publishing its output cannot contribute its missing counters.
 
+## Inspect a run
+
+Use the optional profiler with the same pytest arguments:
+
+```sh
+uv run --no-sync pytest --boorst --boorst-profile -q tests/
+```
+
+`--boorst-profile` also works without `--boorst` to observe stock collection.
+It reports wall time since session start, collection and test-loop wall time,
+reported setup/call/teardown duration sums, and the 10 largest module collection
+totals. Collection and test-loop wall times cover the observed hook spans; outer
+third-party wrappers can perform additional work outside them. Module totals are
+exclusive collect-report work attributed to each module, including its class
+collectors, rather than isolated import time. Setup and teardown include pytest hooks; these are not isolated fixture
+body timings. Under xdist, worker collection time is a sum and can exceed elapsed
+wall time. Module totals include repeated worker collection. Crashed workers may
+leave missing collection observations.
+
+Interpreter, plugin and early conftest imports precede these hooks. Use Python's
+separate tracing when investigating startup:
+
+```sh
+python -X importtime -m pytest --boorst-profile --collect-only
+```
+
+Profiling adds observation overhead, so compare stock/enabled timing without the
+profiler and inspect phases in a separate run. See [optimization decisions and
+public collection controls](RESULTS.md) for the current evidence and limits.
+
 ## Development
 
 Install uv and Rust, then:
@@ -130,7 +160,7 @@ cargo test --locked --lib
 `uv.lock` and `Cargo.lock` pin the development environments. Maturin builds the
 PyO3 extension. GitHub CI installs built wheels and tests Python 3.10–3.14 on Linux,
 plus macOS and Windows smoke coverage, and rebuilds the source distribution.
-The Linux Python 3.10–3.14 wheel lanes also run ID, plugin-integration and installed-wheel
+The Linux Python 3.10–3.14 wheel lanes also run ID, plugin-integration, profiler and installed-wheel
 smoke checks with pytest 7.4.4 and 8.4.2 in separate environments. The Python 3.12
 lane also runs the complete suite with pytest 9.0.2 and 9.0.3.
 Normal wheel-installation checks preserve pytest 6.2.5 in a separate environment
@@ -171,8 +201,8 @@ fixtures, errors, coverage, asyncio, xdist and fallback behavior. Multi-director
 checks include interleaved groups, directory-local fixtures, syntax errors,
 independent directory invalidation and stock fallback for overlapping groups.
 
-Sources: [ID measurements](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a8/benchmarks/results/alpha2-python314-ids-ci.json),
-[directory measurements](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a8/benchmarks/results/alpha2-python314-discovery-ci.json), and the
+Sources: [ID measurements](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a9/benchmarks/results/alpha2-python314-ids-ci.json),
+[directory measurements](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a9/benchmarks/results/alpha2-python314-discovery-ci.json), and the
 [successful CI run](https://github.com/dnikolayev/pytest-boorst/actions/runs/37696156274).
 
 Alpha 4 also covers independent sibling groups. A macOS ARM64 / CPython
@@ -182,7 +212,7 @@ Alpha 4 also covers independent sibling groups. A macOS ARM64 / CPython
 | --- | ---: | ---: | ---: |
 | 384 files across four directories | 1.963 s | 0.973 s | 50.4% less |
 
-[Raw measurements](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a8/benchmarks/results/alpha4-multiple-directories-local.json)
+[Raw measurements](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a9/benchmarks/results/alpha4-multiple-directories-local.json)
 record exact ordered-ID, phase and exit-code parity, with 380 directory reuses and
 zero native ID calls per run. This measures the Python discovery optimization.
 Alpha 3 uses stock discovery for this multi-directory plan. CI repeats the four-directory
@@ -201,5 +231,5 @@ uv run --no-sync python benchmarks/discovery.py --repeats 3
 uv run --no-sync python benchmarks/discovery.py --directories 4 --repeats 3 --output benchmark-results-multiple-directories.json
 ```
 
-See [benchmark methodology](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a8/benchmarks/README.md) for detailed compatibility
+See [benchmark methodology](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a9/benchmarks/README.md) for detailed compatibility
 controls and earlier public-project measurements.

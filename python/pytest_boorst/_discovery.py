@@ -28,6 +28,7 @@ _HOOKS = (
     "pytest_collectreport",
 )
 _HOOK_HASHES = {
+    "pytest_boorst._profile.Profiler.pytest_make_collect_report": "ca71a57916d0318e17b29858abf8bbf9ce40f9344f7a037e56e610677f83f9e9",
     "_pytest.python.pytest_pycollect_makemodule": "942b7cdbbcf74ea989b5b373f8429c1b0570f26c31c3d084330e0c3f6fe83f15",
     "_pytest.main.Session.pytest_collectstart": "bcd2d6b3082c4a77f602a5453a9e551669491ef8a505ee9f8efab75710de15ac",
     "_pytest.main.Session.pytest_runtest_logreport": "d3003ff2a48eccec1ec963a0786c4619b1775d95e78dd081a31ccbbe0d5e7473",
