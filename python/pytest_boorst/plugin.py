@@ -42,18 +42,33 @@ class _ResolvedIds:
         return getattr(self.maker, name)
 
 
+def pytest_addoption(parser):
+    parser.getgroup("boorst").addoption(
+        "--boorst",
+        action="store_true",
+        default=False,
+        help="Enable guarded Boorst acceleration for this pytest run.",
+    )
+
+
+def _enabled(config):
+    return config.getoption("boorst", default=False) or (
+        os.environ.get("PYTEST_BOORST") == "1"
+    )
+
+
 def pytest_configure(config):
     if STATE_KEY is None:
         return
     state = {
         "status": "disabled",
-        "reason": "set PYTEST_BOORST=1 to enable the alpha",
+        "reason": "use --boorst or set PYTEST_BOORST=1 to enable the alpha",
         "native_calls": 0,
         "native_ids": 0,
         "fallback_calls": 0,
     }
     config.stash[STATE_KEY] = state
-    if os.environ.get("PYTEST_BOORST") != "1":
+    if not _enabled(config):
         return
     state.update(status="fallback", reason="unsupported interpreter or pytest version")
     if (
@@ -130,7 +145,7 @@ def pytest_report_header(config):
 def pytest_sessionstart(session):
     if (
         STATE_KEY is None
-        or os.environ.get("PYTEST_BOORST") != "1"
+        or not _enabled(session.config)
         or pytest.__version__ != "9.1.1"
         or sys.platform == "win32"
         or os.environ.get("PYTEST_DEBUG")

@@ -31,8 +31,8 @@ Python 3.10 through 3.14.
 | Linux with musl | x86-64, x86, ARM64 | musllinux 1.2 (Alpine and similar) |
 
 Every platform job installs its wheel, runs the compatibility suite, compares
-native execution with stock pytest, and verifies the installed module command and
-portable trial command.
+native execution with stock pytest, and verifies `pytest --boorst`, the installed
+module command and portable trial command.
 Linux wheels are tested inside the matching pinned PyPA runtime, including musl.
 ARM64 jobs use native ARM64 runners; x86 jobs run 32-bit Python on x86-64 hosts.
 The universal Python wheel remains available as a fallback. This matrix describes
