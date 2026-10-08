@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 from _pytest.python import IdMaker
-from pytest_boorst._ids import unique_ids
+from pytest_boorst._ids import unique_ids, unique_ids_pytest7
 from pytest_boorst.plugin import _ORIGINAL
 
 
@@ -19,6 +19,12 @@ def stock_ids(ids):
 def test_native_and_python_match_stock():
     from pytest_boorst import _native
 
+    python_ids = unique_ids_pytest7 if pytest.__version__ == "7.4.4" else unique_ids
+    native_ids = (
+        _native.unique_ids_pytest7
+        if pytest.__version__ == "7.4.4"
+        else _native.unique_ids
+    )
     rng = random.Random(814)
     alphabet = ["", "a", "a0", "a1", "a_0", "b", "0", "9", "a0_0", "\x00"]
     cases = list(itertools.product(alphabet[:5], repeat=4))
@@ -28,14 +34,15 @@ def test_native_and_python_match_stock():
         values = list(values)
         before = values.copy()
         expected = stock_ids(values)
-        assert unique_ids(values) == expected
-        assert _native.unique_ids(values) == expected
+        assert python_ids(values) == expected
+        assert native_ids(values) == expected
         assert values == before
 
 
 @pytest.mark.parametrize("values", [["é", "é"], ["x²", "x²"], ["\ud800", "\ud800"]])
 def test_python_comparison_handles_python_strings(values):
-    assert unique_ids(values) == stock_ids(values)
+    python_ids = unique_ids_pytest7 if pytest.__version__ == "7.4.4" else unique_ids
+    assert python_ids(values) == stock_ids(values)
 
 
 def test_stock_oracle_is_original():

@@ -49,7 +49,7 @@ Release assets contain the same wheels, source distribution and SHA-256 manifest
 
 ## Compatibility boundary
 
-The parameter-ID adapter currently accelerates **pytest 9.0.2, 9.0.3, and 9.1.1 on CPython
+The parameter-ID adapter currently accelerates **pytest 7.4.4, 8.4.2, 9.0.2, 9.0.3, and 9.1.1 on CPython
 3.10–3.14 with the GIL enabled**. It checks the original method's source fingerprint
 before changing it and restores its owned patch at session cleanup. Other pytest versions,
 modified methods, and missing or unloadable native extensions use stock parameter IDs.
@@ -61,6 +61,12 @@ Small batches, unique IDs, Unicode, string subclasses, hidden IDs, and strict-ID
 errors use pytest behavior. Pytest still resolves custom IDs and calls user hooks
 exactly once. Unexpected native computation errors propagate rather than rerunning
 callbacks or hiding a bug.
+
+Pytest 7 uses its original suffix rules, including collisions with existing IDs;
+pytest 8 and 9 retain their collision-avoidance rules. Strict-ID errors are
+preserved on pytest 9, and hidden parameter IDs stay with pytest on releases
+that provide them. Pytest 7 already has linear duplicate bookkeeping, so its
+native helper may provide little full-run improvement.
 
 On **pytest 9.1.1, CPython 3.10–3.14, Linux and macOS**, directory discovery can
 reuse successful reports for directories with at least 32 distinct `.py` files
@@ -106,10 +112,11 @@ cargo test --locked --lib
 `uv.lock` and `Cargo.lock` pin the development environments. Maturin builds the
 PyO3 extension. GitHub CI installs built wheels and tests Python 3.10–3.14 on Linux,
 plus macOS and Windows smoke coverage, and rebuilds the source distribution.
-The Linux Python 3.12 wheel lane also runs the complete suite and installed-wheel
-smoke checks with pytest 9.0.2 and 9.0.3, and verifies stock fallback on pytest 8.4.2.
-Normal wheel-installation checks preserve pytest 6.2.5 and 7.4.4 in separate
-environments and compare fallback IDs and phase outcomes against stock pytest.
+The Linux Python 3.10–3.14 wheel lanes also run ID, plugin-integration and installed-wheel
+smoke checks with pytest 7.4.4 and 8.4.2 in separate environments. The Python 3.12
+lane also runs the complete suite with pytest 9.0.2 and 9.0.3.
+Normal wheel-installation checks preserve pytest 6.2.5 in a separate environment
+and compare fallback IDs and phase outcomes against stock pytest.
 An independent benchmark job retains raw timings and CPU/memory observations.
 
 ## Performance evidence
