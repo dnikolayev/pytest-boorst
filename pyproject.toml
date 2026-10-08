@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "pytest-boorst"
-version = "0.1.0a4"
+version = "0.1.0a5"
 description = "Experimental Rust-powered acceleration for pytest"
 requires-python = ">=3.10"
 readme = "README.md"

@@ -6,7 +6,7 @@ import os
 import subprocess
 import sys
 
-VERSION = "0.1.0a4"
+VERSION = "0.1.0a5"
 WHEELS = (
     "https://github.com/dnikolayev/pytest-boorst/releases/download/"
     f"v{VERSION}/wheels.html"
