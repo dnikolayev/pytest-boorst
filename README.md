@@ -13,7 +13,7 @@ With uv installed, run this command from your project with its test dependencies
 already installed in its virtual environment. It works in POSIX shells and PowerShell:
 
 ```sh
-uv run --no-sync https://raw.githubusercontent.com/dnikolayev/pytest-boorst/v0.1.0a4/scripts/try.py
+uv run --no-sync https://raw.githubusercontent.com/dnikolayev/pytest-boorst/v0.1.0a5/scripts/try.py
 ```
 
 Append your usual pytest arguments, such as `-q tests/`. The launcher installs the
@@ -21,15 +21,19 @@ pinned GitHub release using a compatible wheel and enables Boorst for that pytes
 process. It preserves the existing Python, pytest, dependencies, project configuration,
 and lockfile. An already-installed matching alpha needs no wheel download or reinstallation.
 
-Native wheels are available for Linux x86-64, macOS ARM64, and Windows x86-64.
+Native wheels cover macOS Intel/ARM64, Windows x86-64/x86/ARM64, and Linux
+glibc/musl on x86-64/x86/ARM64. See the [platform matrix](CONTRIBUTING.md#platform-wheels).
 Other platforms can install the universal Python wheel: it retains the guarded
 directory optimization on supported Linux/macOS environments and uses stock IDs.
-The Linux native wheel currently targets the CI runner's platform.
 
 Boorst remains disabled for ordinary pytest runs unless `PYTEST_BOORST=1`. Use
 `-p no:boorst` to prevent plugin loading; uninstalling the package restores ordinary
-pytest behavior. The launcher respects plugin-autoload settings. No package has
-been published to PyPI yet.
+pytest behavior. The launcher respects plugin-autoload settings.
+
+You can also install the pinned alpha from PyPI with `uv pip install pytest-boorst==0.1.0a5`.
+[GitHub releases](https://github.com/dnikolayev/pytest-boorst/releases) trigger the full CI
+matrix, then publish its tested distributions to PyPI using Trusted Publishing.
+Release assets contain the same wheels, source distribution and SHA-256 manifest.
 
 ## Compatibility boundary
 

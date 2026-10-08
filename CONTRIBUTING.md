@@ -36,3 +36,23 @@ Linux wheels are tested inside the matching pinned PyPA runtime, including musl.
 ARM64 jobs use native ARM64 runners; x86 jobs run 32-bit Python on x86-64 hosts.
 The universal Python wheel remains available as a fallback. This matrix describes
 CI builds; released files are listed on each release page.
+
+## Publishing
+
+Bump the Python version in `pyproject.toml`, `uv.lock` and `scripts/try.py`, the Rust
+version in `Cargo.toml` and `Cargo.lock`, and the pinned README command together.
+After the version change passes PR CI and lands on `main`, publish a GitHub release
+with the exact `v<Python version>` tag. Stable and prerelease publications both
+trigger `.github/workflows/publish.yml`.
+
+The workflow checks the tag/version and main-branch ancestry, runs the complete CI
+matrix on the release commit, and selects one tested wheel per platform plus the
+universal wheel and source distribution. Publishing runs in a separate job with
+OIDC permission and the `pypi` environment; it does not check out or execute project
+code. GitHub release assets receive the same distributions and checksum manifest.
+
+The one-time PyPI Trusted Publisher configuration must use project `pytest-boorst`,
+owner `dnikolayev`, repository `pytest-boorst`, workflow `publish.yml`, and environment
+`pypi`. Use a pending publisher when creating the project. No API token is needed.
+If a release upload partially fails, inspect the uploaded files before retrying;
+existing distributions are not silently skipped or overwritten.
