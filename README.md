@@ -13,13 +13,13 @@ With uv installed, run this command from your project with its test dependencies
 already installed in its virtual environment. It works in POSIX shells and PowerShell:
 
 ```sh
-uv run --no-sync https://raw.githubusercontent.com/dnikolayev/pytest-boorst/v0.1.0a3/scripts/try.py
+uv run --no-sync https://raw.githubusercontent.com/dnikolayev/pytest-boorst/v0.1.0a4/scripts/try.py
 ```
 
 Append your usual pytest arguments, such as `-q tests/`. The launcher installs the
 pinned GitHub release using a compatible wheel and enables Boorst for that pytest
 process. It preserves the existing Python, pytest, dependencies, project configuration,
-and lockfile. An already-installed matching alpha needs no download or reinstallation.
+and lockfile. An already-installed matching alpha needs no wheel download or reinstallation.
 
 Native wheels are available for Linux x86-64, macOS ARM64, and Windows x86-64.
 Other platforms can install the universal Python wheel: it retains the guarded
@@ -47,14 +47,16 @@ exactly once. Unexpected native computation errors propagate rather than rerunni
 callbacks or hiding a bug.
 
 On **pytest 9.1.1, CPython 3.10–3.14, Linux and macOS**, directory discovery can
-reuse a successful report when at least 32 distinct `.py` files in one directory
-are passed as plain arguments. This Python optimization avoids recreating every
+reuse successful reports for directories with at least 32 distinct `.py` files
+passed as plain arguments. Groups may be interleaved across several directories;
+smaller groups retain stock discovery. Selected parent directories must not
+contain one another. This Python optimization avoids recreating every
 sibling collector for each requested file. It needs no native extension and does
 not change the arguments, import unrequested tests, or replace file collection.
 
 Directory reuse requires verified stock directory methods and discovery/report
 hooks. Custom discovery/report hooks, modified methods, selectors, duplicate paths, symlinks,
-mixed directories, doctest-module mode, last-failed/failed-first modes, and debug
+overlapping parent directories, doctest-module mode, last-failed/failed-first modes, and debug
 tracing use stock discovery. Changed hooks, plugins, or collection options stop
 reuse; changed directory metadata invalidates the report. Windows currently uses
 stock discovery. Plugins inspecting discarded collectors or pytest's private
@@ -124,11 +126,26 @@ exit codes. The ID harness checks parity before timing; the discovery harness
 includes identical receipt recording during timing and disables bytecode writes
 for both modes. CI requires at least 10% duplicate-workload improvement and 5%
 directory-workload improvement. Separate compatibility tests cover callbacks,
-fixtures, errors, coverage, asyncio, xdist and fallback behavior.
+fixtures, errors, coverage, asyncio, xdist and fallback behavior. Multi-directory
+checks include interleaved groups, directory-local fixtures, syntax errors,
+independent directory invalidation and stock fallback for overlapping groups.
 
 Sources: [ID measurements](benchmarks/results/alpha2-python314-ids-ci.json),
 [directory measurements](benchmarks/results/alpha2-python314-discovery-ci.json), and the
 [successful CI run](https://github.com/dnikolayev/pytest-boorst/actions/runs/37696156274).
+
+Alpha 4 also covers independent sibling groups. A macOS ARM64 / CPython
+3.14.7 / pytest 9.1.1 trial with the universal wheel measured three fresh full runs:
+
+| Additional synthetic workload | Stock pytest | Boorst enabled | Time change |
+| --- | ---: | ---: | ---: |
+| 384 files across four directories | 1.963 s | 0.973 s | 50.4% less |
+
+[Raw measurements](benchmarks/results/alpha4-multiple-directories-local.json)
+record exact ordered-ID, phase and exit-code parity, with 380 directory reuses and
+zero native ID calls per run. This measures the Python discovery optimization.
+Alpha 3 uses stock discovery for this multi-directory plan. CI repeats the four-directory
+workload on Python 3.14.8 and retains its own raw receipt.
 
 The benchmark job uses CPython 3.14.8. Existing projects can keep their own
 Python version; the trial launcher uses their existing environment.
@@ -140,6 +157,7 @@ uv sync --locked --python 3.14
 uv run --no-sync maturin develop --release --locked
 uv run --no-sync python benchmarks/run.py --size 10000 --repeats 3
 uv run --no-sync python benchmarks/discovery.py --repeats 3
+uv run --no-sync python benchmarks/discovery.py --directories 4 --repeats 3 --output benchmark-results-multiple-directories.json
 ```
 
 See [benchmark methodology](benchmarks/README.md) for detailed compatibility

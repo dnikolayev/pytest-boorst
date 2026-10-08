@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import inspect
+from collections import Counter
 from pathlib import Path
 
 from _pytest.main import Dir, Session
@@ -79,7 +80,7 @@ def _options(config):
 def install(session, state):
     config = session.config
     state.update(discovery_status="fallback", directory_reuses=0)
-    # ponytail: one sibling directory only; expand after a measured workload needs it.
+    # ponytail: only large sibling groups; small groups keep stock discovery.
     if len(config.args) < MIN_FILES or any(
         getattr(config.option, name, False)
         for name in (
@@ -94,11 +95,16 @@ def install(session, state):
         return
     try:
         paths = [Path(arg).absolute() for arg in config.args]
-        parent = paths[0].parent
+        groups = Counter(path.parent for path in paths)
+        parents = {parent for parent, count in groups.items() if count >= MIN_FILES}
+        # Overlapping parents rebuild child collectors and change fixture visibility.
+        if not parents or any(
+            parent in groups for child in groups for parent in child.parents
+        ):
+            return
         if len(set(paths)) != len(paths) or any(
             "::" in arg
             or path.suffix != ".py"
-            or path.parent != parent
             or path.resolve() != path
             or not path.is_file()
             for arg, path in zip(config.args, paths, strict=True)
@@ -124,14 +130,11 @@ def install(session, state):
     except (OSError, TypeError, AttributeError, ValueError):
         return
     original = session._collect_one_node
-    cached = None
-    cached_node = None
-    cache_epoch = None
+    cached = {}
     validated_epoch = None
-    signature = None
 
     def accelerated(node, handle_dupes=True):
-        nonlocal cached, cached_node, cache_epoch, validated_epoch, signature
+        nonlocal validated_epoch
         if (
             state["discovery_status"] != "active"
             or Session._collect_one_node is not _METHODS[1]
@@ -139,9 +142,10 @@ def install(session, state):
             state["discovery_status"] = "fallback"
             restore()
             return session._collect_one_node(node, handle_dupes)
-        if handle_dupes or type(node) not in (Dir, Package) or node.path != parent:
+        if handle_dupes or type(node) not in (Dir, Package) or node.path not in parents:
             return original(node, handle_dupes)
         if session._collection_cache is not validated_epoch:
+            cached.clear()
             parts = session._initial_parts
             if len(parts) != len(paths) or any(
                 part.path != path
@@ -167,31 +171,31 @@ def install(session, state):
             != _METHODS
             or "collect" in node.__dict__
         ):
-            cached = None
+            cached.clear()
             state["discovery_status"] = "fallback"
             restore()
             return session._collect_one_node(node, handle_dupes)
         try:
-            stat = parent.stat()
+            stat = node.path.stat()
             current = (stat.st_dev, stat.st_ino, stat.st_mtime_ns, stat.st_ctime_ns)
         except OSError:
-            cached = None
+            cached.pop(node, None)
             return original(node, handle_dupes)
+        entry = cached.get(node)
         if (
-            cached is not None
-            and node is cached_node
-            and session._collection_cache is cache_epoch
-            and current == signature
+            entry is not None
+            and session._collection_cache is entry[1]
+            and current == entry[2]
         ):
             node.ihook.pytest_collectstart(collector=node)
             state["directory_reuses"] += 1
             # This is still a new file argument, not a duplicate argument.
-            return cached, False
+            return entry[0], False
         report, duplicate = original(node, handle_dupes)
-        cached = report if report.passed else None
-        cached_node = node
-        cache_epoch = session._collection_cache
-        signature = current
+        if report.passed:
+            cached[node] = (report, session._collection_cache, current)
+        else:
+            cached.pop(node, None)
         return report, duplicate
 
     def restore():

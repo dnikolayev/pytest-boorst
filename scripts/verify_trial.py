@@ -36,12 +36,13 @@ def main():
             "def test_fail():\n    assert False, 'expected trial failure'\n",
             encoding="utf-8",
         )
-        cases = root / "cases"
-        cases.mkdir()
-        for index in range(32):
-            (cases / f"test_{index:02d}.py").write_text(
-                "def test_case():\n    assert True\n", encoding="utf-8"
-            )
+        for group in range(2):
+            cases = root / f"cases_{group}"
+            cases.mkdir()
+            for index in range(32):
+                (cases / f"test_{group}_{index:02d}.py").write_text(
+                    "def test_case():\n    assert True\n", encoding="utf-8"
+                )
         (root / "conftest.py").write_text(
             "import json\nfrom pathlib import Path\nfrom pytest_boorst import plugin\n"
             "def pytest_sessionfinish(session):\n"
@@ -77,10 +78,10 @@ def main():
             "assert os.environ['PYTEST_BOORST'] == '1'\n"
             "assert all(Path(p).read_bytes() == data for p, data in files.items())\n"
             f"assert ('pytest_boorst._native' in sys.modules) is {args.expect_native!r}\n"
-            "sys.argv = ['try.py', '-q', *[f'cases/test_{i:02d}.py' for i in range(32)]]\n"
+            "sys.argv = ['try.py', '-q', *[f'cases_{g}/test_{g}_{i:02d}.py' for i in range(32) for g in range(2)]]\n"
             "assert trial.main() == 0\n"
             "state = json.loads(Path('state.json').read_text())\n"
-            "assert state.get('directory_reuses', 0) == (0 if sys.platform == 'win32' else 31)\n"
+            "assert state.get('directory_reuses', 0) == (0 if sys.platform == 'win32' else 62)\n"
             "sys.argv = ['try.py', '-q', 'test_sample.py::test_fail']\n"
             "assert trial.main() == 1\n"
             "assert versions() == after\n"

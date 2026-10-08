@@ -48,7 +48,9 @@ def plan(pytester, *, source="", hook="", package=False):
     return paths
 
 
-def compare(pytester, monkeypatch, paths, *options, between=lambda: None):
+def compare(
+    pytester, monkeypatch, paths, *options, between=lambda: None, expected_error=None
+):
     receipts = []
     for enabled in (False, True):
         (pytester.path / "receipt.json").unlink(missing_ok=True)
@@ -58,6 +60,8 @@ def compare(pytester, monkeypatch, paths, *options, between=lambda: None):
         result = pytester.runpytest_subprocess("-q", *block, *options, *paths)
         receipt = json.loads((pytester.path / "receipt.json").read_text())
         assert int(result.ret) == receipt["exitstatus"]
+        if expected_error:
+            result.stdout.fnmatch_lines([f"*{expected_error}*"])
         receipts.append(receipt)
         if not enabled:
             between()
@@ -65,6 +69,134 @@ def compare(pytester, monkeypatch, paths, *options, between=lambda: None):
     receipts[0].pop("state")
     assert receipts[0] == receipts[1]
     return state, receipts[1]
+
+
+def grouped_plan(pytester, *, nested=False, package=False, sizes=(32, 32), hook=""):
+    paths = plan(pytester, package=package, hook=hook)
+    directories = [pytester.path / "tests"]
+    directories.append(directories[0] / "inner" if nested else pytester.path / "other")
+    directories[1].mkdir()
+    groups = []
+    for index, (directory, size) in enumerate(zip(directories, sizes, strict=True)):
+        if package:
+            (directory / "__init__.py").write_text("")
+        (directory / "conftest.py").write_text(
+            f"import pytest\n@pytest.fixture\ndef local_answer():\n    yield {index}\n"
+        )
+        group = []
+        for number in range(size):
+            path = directory / f"test_{index}_{number:04}.py"
+            path.write_text(
+                "def test_answer(answer, local_answer):\n"
+                f"    assert answer == 42 and local_answer == {index}\n"
+            )
+            group.append(str(path.relative_to(pytester.path)))
+        groups.append(group)
+    for path in paths:
+        (pytester.path / path).unlink()
+    return groups
+
+
+@pytest.mark.skipif(
+    not ELIGIBLE, reason="directory adapter requires POSIX pytest 9.1.1"
+)
+@pytest.mark.parametrize("package", [False, True])
+def test_multiple_directories_preserve_interleaved_order_and_fixtures(
+    pytester, monkeypatch, package
+):
+    groups = grouped_plan(pytester, package=package)
+    paths = [path for pair in zip(*groups, strict=True) for path in pair]
+    with (pytester.path / paths[0]).open("a") as stream:
+        stream.write(
+            "\nimport pytest\n"
+            "def test_failure(answer):\n    assert answer == 0\n"
+            "@pytest.mark.skip(reason='example')\ndef test_skip():\n    pass\n"
+            "@pytest.mark.xfail(reason='example')\ndef test_xfail(answer):\n"
+            "    assert False\n"
+        )
+    state, receipt = compare(pytester, monkeypatch, paths)
+    assert len(receipt["nodes"]) == 67
+    assert [node.split("::")[0] for node in receipt["nodes"][:4]] == [paths[0]] * 4
+    assert receipt["exitstatus"] == 1
+    assert state["discovery_status"] == "active"
+    assert state["directory_reuses"] == 62
+
+
+@pytest.mark.skipif(
+    not ELIGIBLE, reason="directory adapter requires POSIX pytest 9.1.1"
+)
+@pytest.mark.parametrize("sizes", [(32, 32), (32, 8)])
+def test_overlapping_parents_keep_stock_fixture_visibility(
+    pytester, monkeypatch, sizes
+):
+    groups = grouped_plan(pytester, nested=True, package=True, sizes=sizes)
+    paths = [path for pair in zip(*groups, strict=False) for path in pair]
+    paths.extend(groups[0][len(groups[1]) :])
+    state, receipt = compare(pytester, monkeypatch, paths)
+    assert len(receipt["nodes"]) == sum(sizes)
+    assert receipt["exitstatus"] == 1
+    assert state["discovery_status"] == "fallback"
+    assert state["directory_reuses"] == 0
+
+
+@pytest.mark.skipif(
+    not ELIGIBLE, reason="directory adapter requires POSIX pytest 9.1.1"
+)
+@pytest.mark.parametrize("sizes, expected", [((32, 8), 31), ((16, 16), 0)])
+def test_small_sibling_groups_keep_stock_discovery(
+    pytester, monkeypatch, sizes, expected
+):
+    groups = grouped_plan(pytester, sizes=sizes)
+    state, receipt = compare(pytester, monkeypatch, [*groups[0], *groups[1]])
+    assert len(receipt["nodes"]) == sum(sizes)
+    assert state["directory_reuses"] == expected
+    assert state["discovery_status"] == ("active" if expected else "fallback")
+
+
+@pytest.mark.skipif(
+    not ELIGIBLE, reason="directory adapter requires POSIX pytest 9.1.1"
+)
+def test_directory_cache_is_separate_and_collection_errors_stay_visible(
+    pytester, monkeypatch
+):
+    groups = grouped_plan(
+        pytester,
+        hook="""
+@pytest.hookimpl(wrapper=True)
+def pytest_sessionstart(session):
+    yield
+    from _pytest.main import Dir, resolve_collection_argument
+    session._initial_parts = [resolve_collection_argument(
+        session.config.invocation_params.dir, arg, index, as_pypath=False)
+        for index, arg in enumerate(session.config.args)]
+    directory = Path.cwd() / "tests"
+    (directory / "before.txt").write_text("example")
+    first_node = Dir.from_parent(session, path=directory)
+    second_node = Dir.from_parent(session, path=Path.cwd() / "other")
+    first, _ = session._collect_one_node(first_node, False)
+    second, _ = session._collect_one_node(second_node, False)
+    (directory / "before.txt").rename(directory / "after.txt")
+    changed, _ = session._collect_one_node(first_node, False)
+    unchanged, _ = session._collect_one_node(second_node, False)
+    assert changed is not first
+    assert changed is not second
+    plugin = session.config.pluginmanager.get_plugin("boorst")
+    if plugin:
+        assert unchanged is second
+""",
+    )
+    (pytester.path / groups[1][0]).write_text("this is invalid syntax\n")
+    state, receipt = compare(
+        pytester,
+        monkeypatch,
+        [*groups[0], *groups[1]],
+        "--continue-on-collection-errors",
+        expected_error="SyntaxError",
+    )
+    assert len(receipt["nodes"]) == 63
+    assert receipt["exitstatus"] == 1
+    assert state["discovery_status"] == "active"
+    assert state["directory_reuses"] == 63
 
 
 @pytest.mark.skipif(
