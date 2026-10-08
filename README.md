@@ -1,11 +1,13 @@
 # pytest-boorst
 
-Experimental Rust-powered acceleration for pytest.
+Experimental Rust-powered acceleration for pytest, targeting large batches of
+duplicate ASCII parameter IDs and many explicit sibling test-file arguments.
+Suites with unique IDs, small batches, ordinary directory arguments, or time spent
+mainly importing dependencies and running fixtures/tests can see little gain or
+overhead. See the [measured results](#performance-evidence).
 
-This alpha accelerates duplicate parameter-ID bookkeeping and repeated directory
-discovery while pytest keeps control of test collection, fixtures, execution, and
-reporting. Acceleration is opt-in and guarded by a tested pytest version and
-implementation fingerprint. See the [measured results](#performance-evidence).
+Pytest keeps control of test collection, fixtures, execution, and reporting.
+Acceleration is opt-in and requires a recognized pytest implementation.
 
 ## Try the alpha
 
@@ -49,14 +51,19 @@ Release assets contain the same wheels, source distribution and SHA-256 manifest
 
 ## Compatibility boundary
 
-The parameter-ID adapter currently accelerates **pytest 7.4.4, 8.4.2, 9.0.2, 9.0.3, and 9.1.1 on CPython
-3.10–3.14 with the GIL enabled**. It checks the original method's source fingerprint
-before changing it and restores its owned patch at session cleanup. Other pytest versions,
-modified methods, and missing or unloadable native extensions use stock parameter IDs.
+The parameter-ID adapter is explicitly tested on **pytest 7.4.4, 8.4.2, 9.0.2, 9.0.3,
+and 9.1.1 on CPython 3.10–3.14 with the GIL enabled**. Other pytest 7/8/9 releases
+can activate only when the original method's source matches a verified implementation
+from the same major version and its runtime code matches that source. Unknown or
+modified implementations and missing or unloadable native extensions use stock
+parameter IDs. Replacing the original method's code between batches stops ID
+acceleration. The adapter restores its owned patch at session cleanup.
 Installation does not require changing an already-installed pytest version.
 On older releases without pytest's Stash API, the plugin falls back quietly.
 
 Only duplicate batches of at least 64 resolved, exact ASCII strings enter Rust.
+The 64-ID and 32-file cutoffs are conservative eligibility bounds; measurements
+have not established them as universal performance crossover points.
 Small batches, unique IDs, Unicode, string subclasses, hidden IDs, and strict-ID
 errors use pytest behavior. Pytest still resolves custom IDs and calls user hooks
 exactly once. Unexpected native computation errors propagate rather than rerunning
@@ -81,7 +88,8 @@ hooks. Custom discovery/report hooks, modified methods, selectors, duplicate pat
 overlapping parent directories, doctest-module mode, last-failed/failed-first modes, and debug
 tracing use stock discovery. Changed hooks, plugins, or collection options stop
 reuse; changed directory metadata invalidates the report. Windows currently uses
-stock discovery. Plugins inspecting discarded collectors or pytest's private
+stock discovery because directory reuse has not been validated there; this does
+not establish a Windows-specific defect. Plugins inspecting discarded collectors or pytest's private
 collection-cache layout are outside this experimental compatibility boundary.
 
 This uses a narrowly guarded private pytest method. The tested compatibility
@@ -91,8 +99,18 @@ coverage, asyncio, xdist, callbacks, errors, and repeated invocation.
 
 On releases with the Stash API, the header reports activation or fallback.
 The summary reports native ID batches, stock batches, and reused directory reports.
-Counters are per process; xdist workers collect their own batches, so the
-controller can report zero native calls.
+An `active` header means the adapter is installed; it does not prove that any batch
+qualified or that the run became faster. Stock batches observed by the adapter are
+attributed to cutoff, non-ASCII/unsupported IDs, already unique IDs, strict IDs,
+resolution errors, or a method change. Unsupported activation reports its reason
+without patching pytest merely to count stock batches.
+
+With `-v`, the summary lists up to 10 largest observed ID batches, including their
+nodeids, sizes, and native/stock reasons. Under xdist, the controller sums worker
+counters and labels verbose batch entries by worker. These counters describe actual
+work across workers: each worker normally collects the suite, so the same batch can
+be counted more than once. Worker totals exclude controller-local counters. A worker
+that crashes before publishing its output cannot contribute its missing counters.
 
 ## Development
 

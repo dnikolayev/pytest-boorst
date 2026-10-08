@@ -27,7 +27,7 @@ def config():
         cleanup()
 
 
-def make_ids(ids, *, config=None, idfn=None, strict=False):
+def make_ids(ids, *, config=None, idfn=None, strict=False, nodeid="test_example"):
     options = {
         "strict_parametrization_ids": strict,
         "disable_test_id_escaping_and_forfeit_all_rights_to_community_support": True,
@@ -46,7 +46,7 @@ def make_ids(ids, *, config=None, idfn=None, strict=False):
         idfn=idfn,
         ids=ids if idfn is None else None,
         config=config,
-        nodeid="test_example",
+        nodeid=nodeid,
         **extra,
     )
 
@@ -131,6 +131,12 @@ def test_callbacks_run_once_and_fallback_matches_stock(config, monkeypatch, kind
     assert state["native_calls"] == (kind in {"ascii", "subclass"})
     # idfn values are joined by pytest into exact str objects before deduplication.
     assert state["fallback_calls"] == (kind in {"unicode", "small"})
+    expected_reasons = {
+        "unicode": {"non-ASCII": 1},
+        "small": {"below cutoff": 1},
+    }.get(kind, {})
+    assert state["fallback_reasons"] == expected_reasons
+    assert state["largest_batches"] == []
 
 
 def test_explicit_string_subclasses_use_stock(config, monkeypatch):
@@ -143,6 +149,9 @@ def test_explicit_string_subclasses_use_stock(config, monkeypatch):
     assert maker.make_unique_parameterset_ids() == expected
     assert config.stash[plugin.STATE_KEY]["native_calls"] == 0
     assert config.stash[plugin.STATE_KEY]["fallback_calls"] == 1
+    assert config.stash[plugin.STATE_KEY]["fallback_reasons"] == {
+        "unsupported ID type": 1
+    }
 
 
 def test_unique_ascii_ids_do_not_cross_native_boundary(config, monkeypatch):
@@ -152,6 +161,7 @@ def test_unique_ascii_ids_do_not_cross_native_boundary(config, monkeypatch):
     assert maker.make_unique_parameterset_ids() == ids
     assert config.stash[plugin.STATE_KEY]["native_calls"] == 0
     assert config.stash[plugin.STATE_KEY]["fallback_calls"] == 1
+    assert config.stash[plugin.STATE_KEY]["fallback_reasons"] == {"already unique": 1}
 
 
 @pytest.mark.skipif(not HAS_STRICT_IDS, reason="strict IDs require pytest 9")
@@ -184,6 +194,7 @@ def test_strict_setting_is_read_after_callbacks_once(config, monkeypatch):
     assert calls == list(range(80))
     assert strict_reads == [80]
     assert config.stash[plugin.STATE_KEY]["native_calls"] == 0
+    assert config.stash[plugin.STATE_KEY]["fallback_reasons"] == {"strict IDs": 1}
 
 
 @pytest.mark.parametrize(
@@ -216,6 +227,8 @@ def test_error_parity(config, monkeypatch, strict, hidden):
         maker.make_unique_parameterset_ids()
     assert str(accelerated.value) == str(stock.value)
     assert config.stash[plugin.STATE_KEY]["native_calls"] == 0
+    expected_reason = "unsupported ID type" if hidden else "strict IDs"
+    assert config.stash[plugin.STATE_KEY]["fallback_reasons"] == {expected_reason: 1}
 
 
 @pytest.mark.parametrize(
@@ -224,7 +237,7 @@ def test_error_parity(config, monkeypatch, strict, hidden):
 def test_unsupported_activation_leaves_method_alone(config, monkeypatch, unsupported):
     monkeypatch.setenv("PYTEST_BOORST", "1")
     if unsupported == "version":
-        monkeypatch.setattr(pytest, "__version__", "9.0.1")
+        monkeypatch.setattr(pytest, "__version__", "6.2.5")
     elif unsupported == "patched":
         monkeypatch.setattr(IdMaker, "make_unique_parameterset_ids", lambda self: [])
     elif unsupported == "source":
@@ -291,6 +304,144 @@ def test_foreign_config_uses_original(config, monkeypatch):
     activate(monkeypatch, config)
     assert maker.make_unique_parameterset_ids() == expected
     assert config.stash[plugin.STATE_KEY]["native_calls"] == 0
+    assert config.stash[plugin.STATE_KEY]["fallback_calls"] == 0
+    assert config.stash[plugin.STATE_KEY]["fallback_reasons"] == {}
+
+
+def test_verbose_keeps_only_largest_batches(config, monkeypatch):
+    config.getoption = lambda name, default=False: 1 if name == "verbose" else default
+    activate(monkeypatch, config)
+    for size in range(80, 96):
+        make_ids(
+            ["case"] * size, config=config, nodeid=f"tests/test_cases.py::test_{size}"
+        ).make_unique_parameterset_ids()
+    state = config.stash[plugin.STATE_KEY]
+    assert [batch["size"] for batch in state["largest_batches"]] == list(
+        range(95, 85, -1)
+    )
+    assert state["largest_batches"][0] == {
+        "nodeid": "tests/test_cases.py::test_95",
+        "size": 95,
+        "reason": "native",
+    }
+    lines = []
+    plugin.pytest_terminal_summary(SimpleNamespace(write_line=lines.append), config)
+    assert "boorst: 95 IDs: tests/test_cases.py::test_95 (native)" in lines
+    assert len([line for line in lines if " IDs: " in line]) == 10
+
+
+def test_stock_summary_attributes_every_observed_batch(config, monkeypatch):
+    activate(monkeypatch, config)
+    make_ids(["case"] * 4, config=config).make_unique_parameterset_ids()
+    make_ids(["é"] * 80, config=config).make_unique_parameterset_ids()
+    make_ids(
+        [f"case{index}" for index in range(80)], config=config
+    ).make_unique_parameterset_ids()
+    lines = []
+    plugin.pytest_terminal_summary(SimpleNamespace(write_line=lines.append), config)
+    assert "boorst: 0 native ID batches (0 IDs), 3 stock batches" in lines
+    assert (
+        "boorst: stock batch reasons: already unique=1, below cutoff=1, non-ASCII=1"
+        in lines
+    )
+
+
+def test_id_resolution_error_is_counted_and_callback_is_not_repeated(
+    config, monkeypatch
+):
+    calls = []
+
+    def identify(value):
+        calls.append(value)
+        raise ValueError("cannot identify")
+
+    maker = make_ids([None] * 80, config=config, idfn=identify)
+    with pytest.raises(ValueError) as stock:
+        plugin._ORIGINAL(maker)
+    calls.clear()
+    activate(monkeypatch, config)
+    with pytest.raises(ValueError) as accelerated:
+        maker.make_unique_parameterset_ids()
+    assert str(accelerated.value) == str(stock.value)
+    assert calls == [0]
+    assert config.stash[plugin.STATE_KEY]["fallback_reasons"] == {
+        "ID resolution failed": 1
+    }
+
+
+def test_worker_output_is_serializable_and_only_enabled(config, monkeypatch):
+    plugin.pytest_configure(config)
+    config.workerinput = {"workerid": "gw0"}
+    config.workeroutput = {}
+    plugin.pytest_sessionfinish(SimpleNamespace(config=config))
+    assert config.workeroutput == {}
+    activate(monkeypatch, config)
+    make_ids(["case"] * 80, config=config).make_unique_parameterset_ids()
+    state = config.stash[plugin.STATE_KEY]
+    state["directory_reuses"] = 3
+    plugin.pytest_sessionfinish(SimpleNamespace(config=config))
+    worker = json.loads(json.dumps(config.workeroutput))["pytest_boorst"]
+    assert worker["native_calls"] == 1
+    assert worker["native_ids"] == 80
+    assert worker["directory_reuses"] == 3
+
+
+def test_worker_summary_sums_snapshots_without_controller_or_double_counts(
+    config, monkeypatch
+):
+    activate(monkeypatch, config)
+    state = config.stash[plugin.STATE_KEY]
+    state["native_calls"] = 999
+    state["native_ids"] = 999
+    state["directory_reuses"] = 999
+    for workerid, size in (("gw0", 80), ("gw1", 90)):
+        worker = {
+            "status": "active",
+            "reason": "ASCII parameter ID deduplication",
+            "native_calls": 1,
+            "native_ids": size,
+            "fallback_calls": 2,
+            "fallback_reasons": {"below cutoff": 2},
+            "directory_reuses": 3,
+            "largest_batches": [
+                {
+                    "nodeid": "tests/test_cases.py::test_case",
+                    "size": size,
+                    "reason": "native",
+                }
+            ],
+        }
+        node = SimpleNamespace(
+            config=config,
+            gateway=SimpleNamespace(id=workerid),
+            workeroutput={"pytest_boorst": worker},
+        )
+        plugin.pytest_testnodedown(node, None)
+        plugin.pytest_testnodedown(node, None)
+    summary = plugin._summary_state(state)
+    assert summary["native_calls"] == 2
+    assert summary["native_ids"] == 170
+    assert summary["fallback_calls"] == 4
+    assert summary["fallback_reasons"] == {"below cutoff": 4}
+    assert summary["directory_reuses"] == 6
+    assert summary["largest_batches"][0]["worker"] == "gw1"
+    assert state["native_calls"] == 999
+    assert "worker" not in state["worker_states"]["gw0"]["largest_batches"][0]
+    json.dumps(state)
+
+
+def test_worker_crash_without_output_preserves_reporting(config, monkeypatch):
+    activate(monkeypatch, config)
+    state = config.stash[plugin.STATE_KEY]
+    node = SimpleNamespace(config=config, gateway=SimpleNamespace(id="gw0"))
+    plugin.pytest_testnodedown(node, "worker exited")
+    assert plugin._summary_state(state) is state
+
+
+def test_xdist_hook_is_optional():
+    manager = pytest.PytestPluginManager()
+    manager.register(plugin)
+    manager.check_pending()
 
 
 def test_source_fingerprint_matches_supported_pytest():
@@ -298,6 +449,125 @@ def test_source_fingerprint_matches_supported_pytest():
         plugin.hashlib.sha256(inspect.getsource(plugin._ORIGINAL).encode()).hexdigest()
         == plugin._SOURCE_SHA256[pytest.__version__]
     )
+
+
+def test_matching_patch_implementation_can_activate(config, monkeypatch):
+    major = pytest.__version__.split(".", 1)[0]
+    monkeypatch.setattr(pytest, "__version__", f"{major}.99.99")
+    activate(monkeypatch, config)
+    assert make_ids(
+        ["case"] * 80, config=config
+    ).make_unique_parameterset_ids() == plugin._ORIGINAL(
+        make_ids(["case"] * 80, config=config)
+    )
+    assert config.stash[plugin.STATE_KEY]["native_calls"] == 1
+
+
+def test_runtime_code_mutation_does_not_pass_source_verification(config, monkeypatch):
+    original = plugin._ORIGINAL.__code__
+    # Source and function identity remain intact while the algorithm changes.
+    changed = original.replace(co_consts=(*original.co_consts, "changed"))
+    monkeypatch.setattr(plugin._ORIGINAL, "__code__", changed)
+    monkeypatch.setenv("PYTEST_BOORST", "1")
+    plugin.pytest_configure(config)
+    assert config.stash[plugin.STATE_KEY]["status"] == "fallback"
+    assert config.cleanups == []
+
+
+def test_code_replaced_after_activation_uses_stock(config, monkeypatch):
+    maker = make_ids(["case"] * 80, config=config)
+    activate(monkeypatch, config)
+    original = plugin._ORIGINAL.__code__
+    monkeypatch.setattr(plugin._ORIGINAL, "__code__", original.replace())
+    assert maker.make_unique_parameterset_ids() == plugin._ORIGINAL(maker)
+    state = config.stash[plugin.STATE_KEY]
+    assert state["native_calls"] == 0
+    assert state["fallback_reasons"] == {"pytest method changed": 1}
+    assert IdMaker.make_unique_parameterset_ids is plugin._ORIGINAL
+
+
+@pytest.mark.skipif(
+    pytest.__version__.startswith("7."), reason="pytest 7 uses different suffix rules"
+)
+@pytest.mark.parametrize("prefix", ["case1", "é1"])
+def test_code_replaced_by_id_callback_keeps_current_batch_stock_rules(
+    config, monkeypatch, prefix
+):
+    expected = plugin._ORIGINAL(make_ids([prefix] * 80, config=config))
+    original = plugin._ORIGINAL.__code__
+    assert "_" in original.co_consts
+    changed = original.replace(
+        co_consts=tuple("-" if value == "_" else value for value in original.co_consts)
+    )
+    calls = []
+
+    def identify(value):
+        calls.append(value)
+        if len(calls) == 1:
+            monkeypatch.setattr(plugin._ORIGINAL, "__code__", changed)
+        return prefix
+
+    maker = make_ids([None] * 80, config=config, idfn=identify)
+    activate(monkeypatch, config)
+    assert maker.make_unique_parameterset_ids() == expected
+    assert calls == list(range(80))
+    state = config.stash[plugin.STATE_KEY]
+    assert state["status"] == "active"
+    native_calls = int(prefix.isascii())
+    assert state["native_calls"] == native_calls
+    assert maker.make_unique_parameterset_ids() == [
+        value.replace(f"{prefix}_", f"{prefix}-") for value in expected
+    ]
+    assert calls == list(range(80)) * 2
+    assert state["status"] == "fallback"
+    assert state["native_calls"] == native_calls
+    expected_reasons = {"pytest method changed": 1}
+    if not native_calls:
+        expected_reasons["non-ASCII"] = 1
+    assert state["fallback_reasons"] == expected_reasons
+    assert IdMaker.make_unique_parameterset_ids is plugin._ORIGINAL
+
+
+@pytest.mark.skipif(not HAS_STRICT_IDS, reason="strict IDs require pytest 9")
+def test_code_replaced_by_id_callback_preserves_current_strict_error(
+    config, monkeypatch
+):
+    with pytest.raises(pytest.Collector.CollectError) as stock:
+        plugin._ORIGINAL(make_ids(["case"] * 80, config=config, strict=True))
+    original = plugin._ORIGINAL.__code__
+    message = "Duplicate parametrization IDs detected"
+    changed = original.replace(
+        co_consts=tuple(
+            value.replace(message, "Replacement strict IDs")
+            if type(value) is str
+            else value
+            for value in original.co_consts
+        )
+    )
+    assert changed.co_consts != original.co_consts
+    calls = []
+
+    def identify(value):
+        calls.append(value)
+        if len(calls) == 1:
+            monkeypatch.setattr(plugin._ORIGINAL, "__code__", changed)
+        return "case"
+
+    maker = make_ids([None] * 80, config=config, idfn=identify, strict=True)
+    activate(monkeypatch, config)
+    with pytest.raises(pytest.Collector.CollectError) as current:
+        maker.make_unique_parameterset_ids()
+    assert str(current.value) == str(stock.value)
+    with pytest.raises(pytest.Collector.CollectError) as following:
+        maker.make_unique_parameterset_ids()
+    assert str(following.value) == str(stock.value).replace(
+        message, "Replacement strict IDs"
+    )
+    assert calls == list(range(80)) * 2
+    state = config.stash[plugin.STATE_KEY]
+    assert state["native_calls"] == 0
+    assert state["fallback_reasons"] == {"strict IDs": 1, "pytest method changed": 1}
+    assert state["status"] == "fallback"
 
 
 def test_collection_and_plugin_integration(pytester, monkeypatch):
@@ -374,10 +644,53 @@ def test_collection_and_plugin_integration(pytester, monkeypatch):
     )
     distributed = pytester.runpytest_subprocess("-q", "--boorst", "-n", "2")
     distributed.assert_outcomes(**outcomes)
+    distributed.stdout.fnmatch_lines(
+        [
+            "boorst: 2 native ID batches (160 IDs), 0 stock batches",
+            "boorst: counters summed across 2 workers",
+        ]
+    )
     for worker in ("gw0", "gw1"):
         state = json.loads((pytester.path / f"boorst-{worker}.json").read_text())
         assert state["status"] == "active"
         assert state["native_calls"] == 1
+
+
+def test_distributed_fallback_reasons_and_verbose_batches(pytester, monkeypatch):
+    # Pytester's receipt reader uses UTF-8 on every platform.
+    monkeypatch.setenv("PYTHONIOENCODING", "utf-8")
+    pytester.makepyfile("""
+        import pytest
+        @pytest.mark.parametrize("value", range(80), ids=["case"] * 80)
+        def test_native(value):
+            pass
+        @pytest.mark.parametrize("value", range(4), ids=["small"] * 4)
+        def test_small(value):
+            pass
+        @pytest.mark.parametrize("value", range(80), ids=["é"] * 80)
+        def test_unicode(value):
+            pass
+    """)
+    pytester.makeini("""
+        [pytest]
+        disable_test_id_escaping_and_forfeit_all_rights_to_community_support = True
+    """)
+    monkeypatch.delenv("PYTEST_BOORST", raising=False)
+    result = pytester.runpytest_subprocess("--boorst", "-v", "-n", "2")
+    result.assert_outcomes(passed=164)
+    result.stdout.fnmatch_lines(
+        [
+            "boorst: 2 native ID batches (160 IDs), 4 stock batches",
+            "boorst: counters summed across 2 workers",
+            "boorst: stock batch reasons: below cutoff=2, non-ASCII=2",
+        ]
+    )
+    lines = [line for line in result.stdout.lines if line.startswith("boorst:")]
+    assert (
+        sum("::test_native (native)" in line and "[gw" in line for line in lines) == 2
+    )
+    assert sum("::test_unicode (non-ASCII)" in line for line in lines) == 2
+    assert sum("::test_small (below cutoff)" in line for line in lines) == 2
 
 
 def test_repeated_main_restores_method(pytester):
