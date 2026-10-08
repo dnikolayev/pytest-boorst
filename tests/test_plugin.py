@@ -10,6 +10,8 @@ from _pytest.mark import ParameterSet
 from _pytest.python import IdMaker
 from pytest_boorst import plugin
 
+HAS_STRICT_IDS = hasattr(IdMaker, "_strict_parametrization_ids_enabled")
+
 
 @pytest.fixture
 def config():
@@ -152,6 +154,7 @@ def test_unique_ascii_ids_do_not_cross_native_boundary(config, monkeypatch):
     assert config.stash[plugin.STATE_KEY]["fallback_calls"] == 1
 
 
+@pytest.mark.skipif(not HAS_STRICT_IDS, reason="strict IDs require pytest 9")
 def test_strict_setting_is_read_after_callbacks_once(config, monkeypatch):
     calls = []
     strict_reads = []
@@ -183,7 +186,26 @@ def test_strict_setting_is_read_after_callbacks_once(config, monkeypatch):
     assert config.stash[plugin.STATE_KEY]["native_calls"] == 0
 
 
-@pytest.mark.parametrize("strict,hidden", [(True, False), (False, True)])
+@pytest.mark.parametrize(
+    "strict,hidden",
+    [
+        pytest.param(
+            True,
+            False,
+            marks=pytest.mark.skipif(
+                not HAS_STRICT_IDS, reason="strict IDs require pytest 9"
+            ),
+        ),
+        pytest.param(
+            False,
+            True,
+            marks=pytest.mark.skipif(
+                not hasattr(pytest, "HIDDEN_PARAM"),
+                reason="hidden IDs require pytest 8.4 or newer",
+            ),
+        ),
+    ],
+)
 def test_error_parity(config, monkeypatch, strict, hidden):
     ids = [pytest.HIDDEN_PARAM] * 80 if hidden else ["same"] * 80
     maker = make_ids(ids, config=config, strict=strict)
@@ -206,7 +228,7 @@ def test_unsupported_activation_leaves_method_alone(config, monkeypatch, unsuppo
     elif unsupported == "patched":
         monkeypatch.setattr(IdMaker, "make_unique_parameterset_ids", lambda self: [])
     elif unsupported == "source":
-        monkeypatch.setattr(plugin, "_SOURCE_SHA256", "different")
+        monkeypatch.setitem(plugin._SOURCE_SHA256, pytest.__version__, "different")
     elif unsupported == "wrapped":
 
         @functools.wraps(plugin._ORIGINAL)
@@ -239,7 +261,8 @@ def test_native_error_propagates_without_repeating_callbacks(config, monkeypatch
     def broken(ids):
         raise RuntimeError("native failure")
 
-    monkeypatch.setattr(_native, "unique_ids", broken)
+    helper = "unique_ids_pytest7" if pytest.__version__ == "7.4.4" else "unique_ids"
+    monkeypatch.setattr(_native, helper, broken)
     activate(monkeypatch, config)
     calls = []
     maker = make_ids(
@@ -273,7 +296,7 @@ def test_foreign_config_uses_original(config, monkeypatch):
 def test_source_fingerprint_matches_supported_pytest():
     assert (
         plugin.hashlib.sha256(inspect.getsource(plugin._ORIGINAL).encode()).hexdigest()
-        == plugin._SOURCE_SHA256
+        == plugin._SOURCE_SHA256[pytest.__version__]
     )
 
 

@@ -3,6 +3,18 @@
 from collections import Counter, defaultdict
 
 
+def unique_ids_pytest7(ids: list[str]) -> list[str]:
+    """Preserve pytest 7's suffixes, including collisions with existing IDs."""
+    result = list(ids)
+    counts = Counter(ids)
+    suffixes: dict[str, int] = defaultdict(int)
+    for index, value in enumerate(ids):
+        if counts[value] > 1:
+            result[index] = f"{value}{suffixes[value]}"
+            suffixes[value] += 1
+    return result
+
+
 def unique_ids(ids: list[str]) -> list[str]:
     """Match pytest suffixing while maintaining the live ID counts."""
     result = list(ids)

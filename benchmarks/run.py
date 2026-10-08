@@ -24,9 +24,10 @@ import sys
 from types import ModuleType
 
 if os.environ.get("BOORST_COMPARE_PYTHON") == "1":
-    from pytest_boorst._ids import unique_ids
+    from pytest_boorst._ids import unique_ids, unique_ids_pytest7
     module = ModuleType("pytest_boorst._native")
     module.unique_ids = unique_ids
+    module.unique_ids_pytest7 = unique_ids_pytest7
     sys.modules[module.__name__] = module
 
 nodes = []
@@ -106,10 +107,18 @@ def verify(directory: Path) -> dict[str, dict]:
 
 
 def microbenchmark(ids: list[str], repeats: int) -> dict:
+    import pytest
     from _pytest.mark import ParameterSet
     from _pytest.python import IdMaker
     from pytest_boorst import _native
-    from pytest_boorst._ids import unique_ids
+    from pytest_boorst._ids import unique_ids, unique_ids_pytest7
+
+    python_ids = unique_ids_pytest7 if pytest.__version__ == "7.4.4" else unique_ids
+    native_ids = (
+        _native.unique_ids_pytest7
+        if pytest.__version__ == "7.4.4"
+        else _native.unique_ids
+    )
 
     extra = (
         {"func_name": "test_value"}
@@ -139,8 +148,8 @@ def microbenchmark(ids: list[str], repeats: int) -> dict:
 
     functions = {
         "stock": lambda: IdMaker.make_unique_parameterset_ids(Resolved()),
-        "python": lambda: unique_ids(ids),
-        "rust": lambda: _native.unique_ids(ids),
+        "python": lambda: python_ids(ids),
+        "rust": lambda: native_ids(ids),
     }
     expected = functions["stock"]()
     for mode, function in functions.items():

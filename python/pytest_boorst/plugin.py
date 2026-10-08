@@ -19,7 +19,13 @@ except ImportError:
 STATE_KEY = pytest.StashKey[dict]() if hasattr(pytest, "StashKey") else None
 MIN_IDS = 64
 _ORIGINAL = getattr(IdMaker, "make_unique_parameterset_ids", None)
-_SOURCE_SHA256 = "6baee487481ac9da41d36fee0c8870f093aab91b9f507434d5c89620ddf588b8"
+_SOURCE_SHA256 = {
+    "7.4.4": "26868322ec888e4833ac5a992ab1e31f09d9f0e55d94711e9b5976b586e6525b",
+    "8.4.2": "24d0e59cba8e190379a1e64af4f88234a0859024971648d0c54826919946675c",
+    "9.0.2": "6baee487481ac9da41d36fee0c8870f093aab91b9f507434d5c89620ddf588b8",
+    "9.0.3": "6baee487481ac9da41d36fee0c8870f093aab91b9f507434d5c89620ddf588b8",
+    "9.1.1": "6baee487481ac9da41d36fee0c8870f093aab91b9f507434d5c89620ddf588b8",
+}
 
 
 class _ResolvedIds:
@@ -72,7 +78,7 @@ def pytest_configure(config):
         return
     state.update(status="fallback", reason="unsupported interpreter or pytest version")
     if (
-        pytest.__version__ not in {"9.0.2", "9.0.3", "9.1.1"}
+        pytest.__version__ not in _SOURCE_SHA256
         or sys.implementation.name != "cpython"
         or not (3, 10) <= sys.version_info[:2] <= (3, 14)
         or sysconfig.get_config_var("Py_GIL_DISABLED")
@@ -93,14 +99,19 @@ def pytest_configure(config):
         source_hash = hashlib.sha256(inspect.getsource(_ORIGINAL).encode()).hexdigest()
     except (OSError, TypeError):
         return
-    if source_hash != _SOURCE_SHA256:
+    if source_hash != _SOURCE_SHA256[pytest.__version__]:
         return
     state["reason"] = "native extension unavailable"
     try:
         native = importlib.import_module("pytest_boorst._native")
     except (ImportError, OSError):
         return
-    unique_ids = native.unique_ids
+    unique_ids = (
+        native.unique_ids_pytest7
+        if pytest.__version__ == "7.4.4"
+        else native.unique_ids
+    )
+    strict_ids = pytest.__version__.startswith("9.")
 
     def accelerated(maker):
         if maker.config is not config:
@@ -116,7 +127,7 @@ def pytest_configure(config):
         if len(ids) == len(set(ids)):
             state["fallback_calls"] += 1
             return ids
-        if maker._strict_parametrization_ids_enabled():
+        if strict_ids and maker._strict_parametrization_ids_enabled():
             state["fallback_calls"] += 1
             return _ORIGINAL(_ResolvedIds(maker, ids, strict=True))
         result = unique_ids(ids)

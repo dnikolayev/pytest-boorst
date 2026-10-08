@@ -94,28 +94,37 @@ jobs:
       - name: Preserve legacy pytest versions during normal wheel installation
         if: matrix.os == 'ubuntu-24.04' && matrix.python == '3.10'
         run: |
-          for pytest_version in 6.2.5 7.4.4; do
-            legacy_env=".legacy-pytest-$pytest_version"
-            uv venv --python 3.10 "$legacy_env"
-            uv pip install --python "$legacy_env/bin/python" "pytest==$pytest_version"
-            uv pip install --python "$legacy_env/bin/python" --only-binary :all: dist/*.whl
-            "$legacy_env/bin/python" scripts/smoke.py --expect fallback --pytest-version "$pytest_version"
-          done
-      - name: Verify stable pytest versions with the installed wheel
-        if: matrix.os == 'ubuntu-24.04' && matrix.python == '3.12'
+          legacy_env=".legacy-pytest-6.2.5"
+          uv venv --python 3.10 "$legacy_env"
+          uv pip install --python "$legacy_env/bin/python" pytest==6.2.5
+          uv pip install --python "$legacy_env/bin/python" --only-binary :all: dist/*.whl
+          "$legacy_env/bin/python" scripts/smoke.py --expect fallback --pytest-version 6.2.5
+      - name: Verify supported pytest versions with the installed wheel
+        if: matrix.os == 'ubuntu-24.04'
         run: |
-          for pytest_version in 9.0.2 9.0.3; do
-            uv pip install "pytest==$pytest_version"
-            uv pip install --only-binary :all: dist/*.whl
-            uv run --no-sync pytest -q
-            uv run --no-sync python scripts/smoke.py --pytest-version "$pytest_version"
+          pytest_versions="7.4.4 8.4.2"
+          if [[ "${{ matrix.python }}" == "3.12" ]]; then
+            pytest_versions="$pytest_versions 9.0.2 9.0.3"
+          fi
+          for pytest_version in $pytest_versions; do
+            compat_env=".compat-pytest-$pytest_version"
+            uv venv --python "${{ matrix.python }}" "$compat_env"
+            if [[ "$pytest_version" == 7.* ]]; then
+              asyncio_version="0.23.8"
+            else
+              asyncio_version="1.4.0"
+            fi
+            uv pip install --python "$compat_env/bin/python" \
+              "pytest==$pytest_version" "pytest-asyncio==$asyncio_version" \
+              "pytest-cov==7.0.0" "pytest-xdist==3.8.0"
+            uv pip install --python "$compat_env/bin/python" --only-binary :all: dist/*.whl
+            if [[ "$pytest_version" == 9.* ]]; then
+              "$compat_env/bin/python" -m pytest -q
+            else
+              "$compat_env/bin/python" -m pytest -q tests/test_ids.py tests/test_plugin.py
+            fi
+            "$compat_env/bin/python" scripts/smoke.py --pytest-version "$pytest_version"
           done
-      - name: Check unsupported pytest fallback
-        if: matrix.os == 'ubuntu-24.04' && matrix.python == '3.12'
-        run: |
-          uv pip install pytest==8.4.2
-          uv pip install --only-binary :all: dist/*.whl
-          uv run --no-sync python scripts/smoke.py --expect fallback --pytest-version 8.4.2
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: wheel-${{ matrix.os }}-py${{ matrix.python }}
