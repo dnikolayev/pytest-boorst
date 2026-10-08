@@ -13,14 +13,14 @@ From your project directory, with its test dependencies already installed in its
 virtual environment, install from PyPI and run with uv:
 
 ```sh
-uv pip install --no-deps pytest-boorst==0.1.0a7
+uv pip install --no-deps pytest-boorst==0.1.0a8
 uv run --no-sync pytest --boorst -q tests/
 ```
 
 Or, with your project's virtual environment activated, use pip:
 
 ```sh
-python -m pip install --no-deps pytest-boorst==0.1.0a7
+python -m pip install --no-deps pytest-boorst==0.1.0a8
 pytest --boorst -q tests/
 ```
 
@@ -31,7 +31,7 @@ enables guarded acceleration for that pytest run, using your existing configurat
 and leaving your lockfile unchanged.
 
 Native wheels cover macOS Intel/ARM64, Windows x86-64/x86/ARM64, and Linux
-glibc/musl on x86-64/x86/ARM64. See the [platform matrix](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a7/CONTRIBUTING.md#platform-wheels).
+glibc/musl on x86-64/x86/ARM64. See the [platform matrix](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a8/CONTRIBUTING.md#platform-wheels).
 Other platforms can install the universal Python wheel: it retains the guarded
 directory optimization on supported Linux/macOS environments and uses stock IDs.
 
@@ -153,8 +153,8 @@ fixtures, errors, coverage, asyncio, xdist and fallback behavior. Multi-director
 checks include interleaved groups, directory-local fixtures, syntax errors,
 independent directory invalidation and stock fallback for overlapping groups.
 
-Sources: [ID measurements](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a7/benchmarks/results/alpha2-python314-ids-ci.json),
-[directory measurements](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a7/benchmarks/results/alpha2-python314-discovery-ci.json), and the
+Sources: [ID measurements](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a8/benchmarks/results/alpha2-python314-ids-ci.json),
+[directory measurements](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a8/benchmarks/results/alpha2-python314-discovery-ci.json), and the
 [successful CI run](https://github.com/dnikolayev/pytest-boorst/actions/runs/37696156274).
 
 Alpha 4 also covers independent sibling groups. A macOS ARM64 / CPython
@@ -164,7 +164,7 @@ Alpha 4 also covers independent sibling groups. A macOS ARM64 / CPython
 | --- | ---: | ---: | ---: |
 | 384 files across four directories | 1.963 s | 0.973 s | 50.4% less |
 
-[Raw measurements](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a7/benchmarks/results/alpha4-multiple-directories-local.json)
+[Raw measurements](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a8/benchmarks/results/alpha4-multiple-directories-local.json)
 record exact ordered-ID, phase and exit-code parity, with 380 directory reuses and
 zero native ID calls per run. This measures the Python discovery optimization.
 Alpha 3 uses stock discovery for this multi-directory plan. CI repeats the four-directory
@@ -183,5 +183,5 @@ uv run --no-sync python benchmarks/discovery.py --repeats 3
 uv run --no-sync python benchmarks/discovery.py --directories 4 --repeats 3 --output benchmark-results-multiple-directories.json
 ```
 
-See [benchmark methodology](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a7/benchmarks/README.md) for detailed compatibility
+See [benchmark methodology](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a8/benchmarks/README.md) for detailed compatibility
 controls and earlier public-project measurements.
