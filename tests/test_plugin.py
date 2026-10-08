@@ -15,7 +15,10 @@ from pytest_boorst import plugin
 def config():
     cleanups = []
     config = SimpleNamespace(
-        stash=pytest.Stash(), add_cleanup=cleanups.append, cleanups=cleanups
+        stash=pytest.Stash(),
+        add_cleanup=cleanups.append,
+        cleanups=cleanups,
+        getoption=lambda name, default=False: default,
     )
     yield config
     for cleanup in reversed(cleanups):
@@ -329,7 +332,7 @@ def test_collection_and_plugin_integration(pytester, monkeypatch):
         def test_xpass():
             pass
     """)
-    monkeypatch.setenv("PYTEST_BOORST", "1")
+    monkeypatch.delenv("PYTEST_BOORST", raising=False)
     coverage = ["--cov=.", "--cov-report=json:coverage.json"]
     outcomes = dict(passed=81, failed=1, skipped=1, xfailed=1, xpassed=1)
     disabled = pytester.runpytest_subprocess("-q", "-p", "no:boorst", *coverage)
@@ -337,7 +340,7 @@ def test_collection_and_plugin_integration(pytester, monkeypatch):
     baseline = json.loads((pytester.path / "manifest.json").read_text())
     reports = json.loads((pytester.path / "reports.json").read_text())
     covered = json.loads((pytester.path / "coverage.json").read_text())["files"]
-    active = pytester.runpytest_subprocess("-q", *coverage)
+    active = pytester.runpytest_subprocess("-q", "--boorst", *coverage)
     active.assert_outcomes(**outcomes)
     assert active.ret == disabled.ret
     assert json.loads((pytester.path / "manifest.json").read_text()) == baseline
@@ -346,7 +349,7 @@ def test_collection_and_plugin_integration(pytester, monkeypatch):
     active.stdout.fnmatch_lines(
         ["boorst: 1 native ID batches (80 IDs), 0 stock batches"]
     )
-    distributed = pytester.runpytest_subprocess("-q", "-n", "2")
+    distributed = pytester.runpytest_subprocess("-q", "--boorst", "-n", "2")
     distributed.assert_outcomes(**outcomes)
     for worker in ("gw0", "gw1"):
         state = json.loads((pytester.path / f"boorst-{worker}.json").read_text())

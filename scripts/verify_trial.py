@@ -97,9 +97,23 @@ def main():
             "assert subprocess.run(command + ['-q', 'test_sample.py::test_fail'], env=env).returncode == 1\n"
             "assert subprocess.run(command + ['-q', '-p', 'no:boorst', 'test_sample.py::test_pass'], env=env).returncode == 0\n"
             "assert json.loads(Path('state.json').read_text()) == {}\n"
+            "command = ['uv', 'run', '--no-sync', 'pytest', '--boorst']\n"
+            "assert subprocess.run(command + ['-q', '-W', 'error::pytest.PytestAssertRewriteWarning', 'test_sample.py::test_pass'], env=env).returncode == 0\n"
+            "state = json.loads(Path('state.json').read_text())\n"
+            f"assert state.get('native_calls', 0) == int({args.expect_native!r})\n"
+            "assert subprocess.run(command + ['-q', *paths], env=env).returncode == 0\n"
+            "state = json.loads(Path('state.json').read_text())\n"
+            "assert state.get('directory_reuses', 0) == (0 if sys.platform == 'win32' else 62)\n"
+            "assert subprocess.run(command + ['-q', 'test_sample.py::test_fail'], env=env).returncode == 1\n"
+            "assert subprocess.run(['uv', 'run', '--no-sync', 'pytest', '-q', 'test_sample.py::test_pass'], env=env).returncode == 0\n"
+            "assert json.loads(Path('state.json').read_text())['status'] == 'disabled'\n"
+            "manual_env = dict(env, PYTEST_DISABLE_PLUGIN_AUTOLOAD='1')\n"
+            "assert subprocess.run(command + ['-p', 'boorst', '-q', 'test_sample.py::test_pass'], env=manual_env).returncode == 0\n"
+            "state = json.loads(Path('state.json').read_text())\n"
+            f"assert state.get('native_calls', 0) == int({args.expect_native!r})\n"
             "assert versions() == after\n"
             "assert all(Path(p).read_bytes() == data for p, data in files.items())\n"
-            "print('Trial and module verified: arguments, exit status, opt-out, unchanged dependencies/configuration')\n",
+            "print('Trial, module and pytest option verified: arguments, exit status, opt-in/out, unchanged dependencies/configuration')\n",
             encoding="utf-8",
         )
         handler = partial(SimpleHTTPRequestHandler, directory=str(root))
