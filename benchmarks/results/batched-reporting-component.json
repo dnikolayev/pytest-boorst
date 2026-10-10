@@ -1,0 +1,155 @@
+{
+  "python": "3.14.7",
+  "pytest": "9.1.1",
+  "boorst": "0.1.0a10",
+  "platform": "Darwin",
+  "machine": "arm64",
+  "records": 300000,
+  "batch_size": 256,
+  "trials": 3,
+  "totals_identical": true,
+  "measurement": "Profiler report hooks plus final snapshot; prebuilt synthetic report objects",
+  "profile_source_sha256": "a4bc7d39131e0a73ad25d0b5d77c3a3bc505fb4f7bd602597ec62d3d943eddde",
+  "native_sha256": "9a3116c2427c5445c065a97190c986809e1e1b46615530d64dd7f5220da71726",
+  "median_seconds": {
+    "python": 0.03969820903148502,
+    "python_batch": 0.06044695794116706,
+    "rust_batch": 0.05886250000912696
+  },
+  "samples": [
+    {
+      "trial": 1,
+      "mode": "python",
+      "seconds": 0.03989208291750401,
+      "reported_phase_sum": {
+        "setup": 100.00000000011343,
+        "call": 200.00000000022686,
+        "teardown": 299.9999999991965
+      },
+      "batch_counters": null
+    },
+    {
+      "trial": 1,
+      "mode": "python_batch",
+      "seconds": 0.060206249938346446,
+      "reported_phase_sum": {
+        "setup": 100.00000000011343,
+        "call": 200.00000000022686,
+        "teardown": 299.9999999991965
+      },
+      "batch_counters": {
+        "status": "native",
+        "reason": "",
+        "native_batches": 1172,
+        "native_reports": 300000
+      }
+    },
+    {
+      "trial": 1,
+      "mode": "rust_batch",
+      "seconds": 0.05886250000912696,
+      "reported_phase_sum": {
+        "setup": 100.00000000011343,
+        "call": 200.00000000022686,
+        "teardown": 299.9999999991965
+      },
+      "batch_counters": {
+        "status": "native",
+        "reason": "",
+        "native_batches": 1172,
+        "native_reports": 300000
+      }
+    },
+    {
+      "trial": 2,
+      "mode": "python_batch",
+      "seconds": 0.06044695794116706,
+      "reported_phase_sum": {
+        "setup": 100.00000000011343,
+        "call": 200.00000000022686,
+        "teardown": 299.9999999991965
+      },
+      "batch_counters": {
+        "status": "native",
+        "reason": "",
+        "native_batches": 1172,
+        "native_reports": 300000
+      }
+    },
+    {
+      "trial": 2,
+      "mode": "rust_batch",
+      "seconds": 0.05882095801644027,
+      "reported_phase_sum": {
+        "setup": 100.00000000011343,
+        "call": 200.00000000022686,
+        "teardown": 299.9999999991965
+      },
+      "batch_counters": {
+        "status": "native",
+        "reason": "",
+        "native_batches": 1172,
+        "native_reports": 300000
+      }
+    },
+    {
+      "trial": 2,
+      "mode": "python",
+      "seconds": 0.03953374992124736,
+      "reported_phase_sum": {
+        "setup": 100.00000000011343,
+        "call": 200.00000000022686,
+        "teardown": 299.9999999991965
+      },
+      "batch_counters": null
+    },
+    {
+      "trial": 3,
+      "mode": "rust_batch",
+      "seconds": 0.059488500002771616,
+      "reported_phase_sum": {
+        "setup": 100.00000000011343,
+        "call": 200.00000000022686,
+        "teardown": 299.9999999991965
+      },
+      "batch_counters": {
+        "status": "native",
+        "reason": "",
+        "native_batches": 1172,
+        "native_reports": 300000
+      }
+    },
+    {
+      "trial": 3,
+      "mode": "python",
+      "seconds": 0.03969820903148502,
+      "reported_phase_sum": {
+        "setup": 100.00000000011343,
+        "call": 200.00000000022686,
+        "teardown": 299.9999999991965
+      },
+      "batch_counters": null
+    },
+    {
+      "trial": 3,
+      "mode": "python_batch",
+      "seconds": 0.06064937496557832,
+      "reported_phase_sum": {
+        "setup": 100.00000000011343,
+        "call": 200.00000000022686,
+        "teardown": 299.9999999991965
+      },
+      "batch_counters": {
+        "status": "native",
+        "reason": "",
+        "native_batches": 1172,
+        "native_reports": 300000
+      }
+    }
+  ],
+  "limits": [
+    "Component timing only; not full pytest or CI duration.",
+    "Python batching substitutes a Python helper; counters in that mode count dispatcher calls, not Rust execution.",
+    "Three rotating trials are a bounded comparison, not a statistical guarantee."
+  ]
+}

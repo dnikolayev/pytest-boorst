@@ -158,6 +158,12 @@ def pytest_addoption(parser):
         default=False,
         help="Use cached durations to order xdist loadscope groups (opt-in).",
     )
+    group.addoption(
+        "--boorst-batch-reporting",
+        action="store_true",
+        default=False,
+        help="Enable profiling with experimental Rust batch phase aggregation.",
+    )
 
 
 def _enabled(config):
@@ -173,10 +179,11 @@ def pytest_configure(config):
         from ._schedule import install as install_schedule
 
         install_schedule(config)
-    if config.getoption("boorst_profile", default=False):
+    batch_reporting = config.getoption("boorst_batch_reporting", default=False)
+    if config.getoption("boorst_profile", default=False) or batch_reporting:
         from ._profile import install
 
-        install(config)
+        install(config, batch_reporting=batch_reporting)
     state = {
         "status": "disabled",
         "reason": "use --boorst or set PYTEST_BOORST=1 to enable the alpha",

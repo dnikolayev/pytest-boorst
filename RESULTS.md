@@ -78,8 +78,9 @@ were tested as isolated prototypes. **None passed the final 5% full-run
 improvement gate.** The preliminary 10.72%
 scheduling result was excluded from acceptance because the guarded five-pair
 comparison did not reproduce it. These measurements do not establish speedups
-available with `--boorst`. Duration ordering is now available separately as the
-experimental `--boorst-schedule` opt-in; the measurements remain unchanged.
+available with `--boorst`. Duration ordering and bounded phase aggregation are now
+available separately as `--boorst-schedule` and `--boorst-batch-reporting`;
+the original measurements remain unchanged.
 The linked JSON retains the original prototype decision at measurement time.
 
 All full runs used the same [attrs revision](https://github.com/python-attrs/attrs/tree/644b4e165bfbeee7e127de6fcbda08b64014316f),
@@ -91,7 +92,7 @@ run sequentially. Positive improvement means a lower candidate median.
 | --- | ---: | ---: | ---: | --- |
 | Rust batch `-k 'not pickle'` matching | 7.067 s | 7.208 s | -1.99% | Reject: matching itself was only 0.11% of baseline time. |
 | Rust batch `-m 'not slow'` matching | 7.231 s | 7.480 s | -3.44% | Reject: matching itself was only 0.04% of baseline time. |
-| Rust batched phase totals | 7.223 s | 7.177 s | +0.63% | Reject: below the gate; only a small feasibility screen. |
+| Rust batched phase totals | 7.223 s | 7.177 s | +0.63% | Prototype only; bounded implementation is a separate experimental opt-in below. |
 | Cached duration ordering of xdist scope groups | 4.098 s | 4.073 s | +0.61% | Experimental opt-in only; five pairs did not reproduce the preliminary gain. |
 
 Filtering used two runs per mode and selector. The keyword case selected 1,302
@@ -113,7 +114,7 @@ simple Python additions; allocating and converting a batch adds work.
 
 Scheduling used four workers with xdist 3.8.0 and preserved `loadscope` grouping,
 worker inventories and within-group ordering. It intentionally changed group
-execution order, so it would require a separate opt-in. A preliminary three-pair
+execution order, so it uses a separate opt-in. A preliminary three-pair
 screen suggested 10.72%, but five alternating pairs with the guarded installed
 wheel measured only 0.61%. Every candidate run confirmed activation; all runs
 matched ordered collections and sorted node/phase/outcome/xfail records, with
@@ -128,6 +129,38 @@ evidence for these local decisions, not a standalone reproduction package or a
 prediction for another project's CI. Native AST-only collection and cross-run
 fixture reuse remain outside the transparent-plugin scope: they would need to
 preserve dynamic collectors, hooks, fixture visibility and teardown behavior.
+
+## Bounded reporting implementation
+
+`--boorst-batch-reporting` is an explicit experimental profiler option. Its bounded
+256-record buffer replaces the unbounded feasibility prototype measured above.
+It retains pytest's normal reporting and uses Python when the native helper is
+unavailable or cannot handle the values.
+
+Three rotating trials on macOS ARM64, CPython 3.14.7 and pytest 9.1.1 fed 300,000
+prebuilt synthetic report objects through the profiler and its final snapshot:
+
+| Aggregation implementation | Median |
+| --- | ---: |
+| Existing direct Python accumulation | 39.698 ms |
+| Bounded batching with an equivalent Python helper | 60.447 ms |
+| Bounded batching with the Rust helper | 58.863 ms |
+
+All totals matched exactly. The Rust variant processed 300,000 records in 1,172
+batches. The Python batching comparison substitutes an equivalent Python helper
+behind the same dispatcher; its counters count helper calls, not Rust calls.
+Rust batching was slower than existing direct Python accumulation in this test.
+This component result does not establish an end-to-end benefit.
+[Samples and source identities](benchmarks/results/batched-reporting-component.json)
+record this comparison; the earlier full-run result belongs to the prototype.
+
+A combined installed-wheel check on the attrs revision above used four xdist
+workers with `loadscope`. Stock profiling, first-run learning and warm duration
+ordering collected the same 1,413 items and produced identical outcomes for all
+4,235 phase reports. Both enabled runs confirmed native aggregation of every
+report, with totals matching an independent observer. This was a compatibility
+check, not a speed measurement. A universal-wheel smoke check also confirmed
+Python reporting fallback and learning followed by warm duration ordering.
 
 ## Reproduce collection controls
 
