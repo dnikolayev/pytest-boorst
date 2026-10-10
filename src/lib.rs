@@ -76,10 +76,27 @@ fn unique_ids_pytest7(ids: Vec<String>) -> PyResult<Vec<String>> {
     make_unique_pytest7(ids).map_err(PyValueError::new_err)
 }
 
+#[pyfunction]
+fn sum_report_batch(
+    initial: (f64, f64, f64),
+    reports: Vec<(usize, f64)>,
+) -> PyResult<(f64, f64, f64)> {
+    let mut totals = [initial.0, initial.1, initial.2];
+    for (phase, duration) in reports {
+        let total = totals
+            .get_mut(phase)
+            .ok_or_else(|| PyValueError::new_err("unknown report phase"))?;
+        // Keep Python's addition order, including across batch boundaries.
+        *total += duration;
+    }
+    Ok((totals[0], totals[1], totals[2]))
+}
+
 #[pymodule]
 fn _native(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(unique_ids, module)?)?;
-    module.add_function(wrap_pyfunction!(unique_ids_pytest7, module)?)
+    module.add_function(wrap_pyfunction!(unique_ids_pytest7, module)?)?;
+    module.add_function(wrap_pyfunction!(sum_report_batch, module)?)
 }
 
 #[cfg(test)]

@@ -15,14 +15,14 @@ From your project directory, with its test dependencies already installed in its
 virtual environment, install from PyPI and run with uv:
 
 ```sh
-uv pip install --no-deps pytest-boorst==0.1.0a9
+uv pip install --no-deps pytest-boorst==0.1.0a10
 uv run --no-sync pytest --boorst -q tests/
 ```
 
 Or, with your project's virtual environment activated, use pip:
 
 ```sh
-python -m pip install --no-deps pytest-boorst==0.1.0a9
+python -m pip install --no-deps pytest-boorst==0.1.0a10
 pytest --boorst -q tests/
 ```
 
@@ -33,7 +33,7 @@ enables guarded acceleration for that pytest run, using your existing configurat
 and leaving your lockfile unchanged.
 
 Native wheels cover macOS Intel/ARM64, Windows x86-64/x86/ARM64, and Linux
-glibc/musl on x86-64/x86/ARM64. See the [platform matrix](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a9/CONTRIBUTING.md#platform-wheels).
+glibc/musl on x86-64/x86/ARM64. See the [platform matrix](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a10/CONTRIBUTING.md#platform-wheels).
 Other platforms can install the universal Python wheel: it retains the guarded
 directory optimization on supported Linux/macOS environments and uses stock IDs.
 
@@ -112,7 +112,7 @@ work across workers: each worker normally collects the suite, so the same batch 
 be counted more than once. Worker totals exclude controller-local counters. A worker
 that crashes before publishing its output cannot contribute its missing counters.
 
-## Experimental duration scheduling (unreleased)
+## Experimental duration scheduling
 
 With pytest-xdist 3.8.0 installed, enable cached duration ordering explicitly:
 
@@ -171,6 +171,34 @@ python -X importtime -m pytest --boorst-profile --collect-only
 Profiling adds observation overhead, so compare stock/enabled timing without the
 profiler and inspect phases in a separate run. See [optimization decisions and
 public collection controls](RESULTS.md) for the current evidence and limits.
+
+## Experimental batched profiling
+
+```sh
+pytest --boorst-batch-reporting -q tests/
+```
+
+This enables the profiler and batches only Boorst's setup/call/teardown duration
+totals through Rust. It buffers at most 256 phase records, preserves addition order,
+and flushes before snapshots and session completion. Pytest's ordinary report hooks,
+terminal output and JUnit reports still receive every test report normally.
+
+It works independently of `--boorst` and `--boorst-profile`. The summary identifies
+native aggregation or Python fallback. Unsupported runtimes, unavailable native
+helpers, custom report values and native errors use Python accumulation. The
+universal wheel therefore remains usable without Rust. Existing profiler behavior
+is unchanged when this option is omitted.
+
+Batching has **no demonstrated overall speedup**. A three-trial, 300,000-record
+component comparison measured 39.7 ms for direct Python aggregation, 60.4 ms for
+Python batching and 58.9 ms for Rust batching. These are aggregation timings, not
+full pytest run times. See [measurements and limits](RESULTS.md#bounded-reporting-implementation).
+
+To combine the existing acceleration, duration scheduling and batched profiling:
+
+```sh
+pytest --boorst -n auto --dist=loadscope --boorst-schedule --boorst-batch-reporting -q tests/
+```
 
 ## Development
 
@@ -231,8 +259,8 @@ fixtures, errors, coverage, asyncio, xdist and fallback behavior. Multi-director
 checks include interleaved groups, directory-local fixtures, syntax errors,
 independent directory invalidation and stock fallback for overlapping groups.
 
-Sources: [ID measurements](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a9/benchmarks/results/alpha2-python314-ids-ci.json),
-[directory measurements](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a9/benchmarks/results/alpha2-python314-discovery-ci.json), and the
+Sources: [ID measurements](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a10/benchmarks/results/alpha2-python314-ids-ci.json),
+[directory measurements](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a10/benchmarks/results/alpha2-python314-discovery-ci.json), and the
 [successful CI run](https://github.com/dnikolayev/pytest-boorst/actions/runs/37696156274).
 
 Alpha 4 also covers independent sibling groups. A macOS ARM64 / CPython
@@ -242,7 +270,7 @@ Alpha 4 also covers independent sibling groups. A macOS ARM64 / CPython
 | --- | ---: | ---: | ---: |
 | 384 files across four directories | 1.963 s | 0.973 s | 50.4% less |
 
-[Raw measurements](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a9/benchmarks/results/alpha4-multiple-directories-local.json)
+[Raw measurements](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a10/benchmarks/results/alpha4-multiple-directories-local.json)
 record exact ordered-ID, phase and exit-code parity, with 380 directory reuses and
 zero native ID calls per run. This measures the Python discovery optimization.
 Alpha 3 uses stock discovery for this multi-directory plan. CI repeats the four-directory
@@ -261,5 +289,5 @@ uv run --no-sync python benchmarks/discovery.py --repeats 3
 uv run --no-sync python benchmarks/discovery.py --directories 4 --repeats 3 --output benchmark-results-multiple-directories.json
 ```
 
-See [benchmark methodology](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a9/benchmarks/README.md) for detailed compatibility
+See [benchmark methodology](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a10/benchmarks/README.md) for detailed compatibility
 controls and earlier public-project measurements.
