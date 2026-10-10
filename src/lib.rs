@@ -1,3 +1,4 @@
+mod locations;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use std::collections::HashMap;
@@ -96,7 +97,9 @@ fn sum_report_batch(
 fn _native(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(unique_ids, module)?)?;
     module.add_function(wrap_pyfunction!(unique_ids_pytest7, module)?)?;
-    module.add_function(wrap_pyfunction!(sum_report_batch, module)?)
+    module.add_function(wrap_pyfunction!(sum_report_batch, module)?)?;
+    module.add_class::<locations::LocationPlan>()?;
+    module.add_function(wrap_pyfunction!(locations::location_plan, module)?)
 }
 
 #[cfg(test)]

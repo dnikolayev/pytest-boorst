@@ -8,6 +8,9 @@ Use the development commands in the README. A change to an accelerated operation
 needs differential coverage against stock pytest and a benchmark comparing the
 stock implementation, an optimized Python implementation, and the native helper.
 Confirm that native code was actually exercised and include control workloads.
+Assertion-location changes must also compare generated AST locations, failures and
+fallback behavior. The module-batching path initially supports pytest 9.1.1 on
+GIL-enabled CPython 3.14; retain stock rewriting on other runtimes and modified ASTs.
 
 Keep examples synthetic. Publish only sanitized, reproducible benchmark evidence;
 keep project-specific source, configuration, paths, and results outside this repository.
@@ -41,7 +44,9 @@ CI builds; released files are listed on each release page.
 ## Publishing
 
 Bump the Python version in `pyproject.toml`, `uv.lock` and `scripts/try.py`, the Rust
-version in `Cargo.toml` and `Cargo.lock`, and the pinned README commands and links together.
+version in `Cargo.toml` and `Cargo.lock`, and current release references together.
+Keep historical benchmark labels, receipt filenames and Boorst source links tied to the
+versions they measured.
 After the version change passes PR CI and lands on `main`, publish a GitHub release
 with the exact `v<Python version>` tag. Stable and prerelease publications both
 trigger `.github/workflows/publish.yml`.

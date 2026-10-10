@@ -9,9 +9,7 @@
     "hypothesis_seed": 20261009
   },
   "corpus": {
-    "repository": "https://github.com/python-attrs/attrs",
-    "commit": "644b4e165bfbeee7e127de6fcbda08b64014316f",
-    "source": "checked-out src directory",
+    "description": "Anonymized compatibility workload",
     "full_inventory": 1413
   },
   "method": "Fresh subprocesses, fixed Hypothesis seed, isolated per-run caches and Hypothesis storage. Wall time includes interpreter startup. Trials were not concurrent.",

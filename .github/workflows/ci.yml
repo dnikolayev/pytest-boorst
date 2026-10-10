@@ -52,6 +52,10 @@ jobs:
             python: "3.12"
           - os: windows-latest
             python: "3.12"
+          - os: macos-14
+            python: "3.14"
+          - os: windows-latest
+            python: "3.14"
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
@@ -82,7 +86,7 @@ jobs:
         if: matrix.os == 'ubuntu-24.04' && matrix.python == '3.12'
         run: uv run --no-sync python scripts/verify_trial.py --wheels dist/pure
       - name: Verify the universal fallback trial in PowerShell
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-latest' && matrix.python == '3.12'
         shell: pwsh
         run: uv run --no-sync python scripts/verify_trial.py --wheels dist/pure
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -121,7 +125,7 @@ jobs:
             if [[ "$pytest_version" == 9.* ]]; then
               "$compat_env/bin/python" -m pytest -q
             else
-              "$compat_env/bin/python" -m pytest -q tests/test_ids.py tests/test_plugin.py tests/test_profile.py tests/test_schedule.py tests/test_static.py
+              "$compat_env/bin/python" -m pytest -q tests/test_ids.py tests/test_plugin.py tests/test_profile.py tests/test_schedule.py tests/test_static.py tests/test_assertions.py
             fi
             "$compat_env/bin/python" scripts/smoke.py --pytest-version "$pytest_version"
           done
@@ -336,6 +340,7 @@ jobs:
       - run: uv run --no-sync python benchmarks/memory.py --repeats 3
       - run: uv run --no-sync python benchmarks/discovery.py --repeats 3
       - run: uv run --no-sync python benchmarks/discovery.py --directories 4 --repeats 3 --output benchmark-results-multiple-directories.json
+      - run: uv run --no-sync python benchmarks/assertions.py --repeats 3
       - name: Verify target and native helper timings
         run: |
           uv run --no-sync python - <<'PY'

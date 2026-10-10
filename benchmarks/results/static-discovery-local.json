@@ -177,5 +177,5 @@
     },
     "limits": "Synthetic serial full runs; not a general speedup or complete-test guarantee."
   },
-  "measurement_note": "Final five-pair run had no concurrent task tests/builds. Earlier three-pair shared-host samples are retained and showed substantially greater variance."
+  "measurement_note": "Final five-pair run had no concurrent local tests/builds. Earlier three-pair shared-host samples are retained and showed substantially greater variance."
 }

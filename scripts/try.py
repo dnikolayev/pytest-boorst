@@ -1,4 +1,4 @@
-"""Install the pinned alpha into an existing test environment and run pytest."""
+"""Install the pinned release into an existing test environment and run pytest."""
 
 import importlib.metadata
 import importlib.util
@@ -6,7 +6,7 @@ import os
 import subprocess
 import sys
 
-VERSION = "0.1.0a10"
+VERSION = "0.1.0"
 WHEELS = (
     "https://github.com/dnikolayev/pytest-boorst/releases/download/"
     f"v{VERSION}/wheels.html"
