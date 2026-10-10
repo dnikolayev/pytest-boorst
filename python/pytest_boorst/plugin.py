@@ -75,6 +75,13 @@ def _same_code(actual, expected):
             )
         if kind is tuple:
             return kind, tuple(constant(item) for item in value)
+        if kind is slice:
+            return (
+                kind,
+                constant(value.start),
+                constant(value.stop),
+                constant(value.step),
+            )
         if kind is frozenset:
             return kind, frozenset(constant(item) for item in value)
         if kind in (str, bytes, int, float, complex, bool, type(None), type(Ellipsis)):
@@ -145,6 +152,12 @@ def pytest_addoption(parser):
         default=False,
         help="Report collection and execution timings without enabling acceleration.",
     )
+    group.addoption(
+        "--boorst-schedule",
+        action="store_true",
+        default=False,
+        help="Use cached durations to order xdist loadscope groups (opt-in).",
+    )
 
 
 def _enabled(config):
@@ -156,6 +169,10 @@ def _enabled(config):
 def pytest_configure(config):
     if STATE_KEY is None:
         return
+    if config.getoption("boorst_schedule", default=False):
+        from ._schedule import install as install_schedule
+
+        install_schedule(config)
     if config.getoption("boorst_profile", default=False):
         from ._profile import install
 

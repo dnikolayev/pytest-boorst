@@ -37,7 +37,7 @@ glibc/musl on x86-64/x86/ARM64. See the [platform matrix](https://github.com/dni
 Other platforms can install the universal Python wheel: it retains the guarded
 directory optimization on supported Linux/macOS environments and uses stock IDs.
 
-Acceleration stays disabled when `--boorst` is omitted and `PYTEST_BOORST=1` is unset. Use
+ID and directory acceleration stay disabled when `--boorst` is omitted and `PYTEST_BOORST=1` is unset. Use
 `-p no:boorst` to prevent plugin loading; uninstalling the package restores ordinary
 pytest behavior. If plugin autoload is disabled, load it explicitly with
 `pytest -p boorst --boorst -q tests/`.
@@ -112,6 +112,36 @@ work across workers: each worker normally collects the suite, so the same batch 
 be counted more than once. Worker totals exclude controller-local counters. A worker
 that crashes before publishing its output cannot contribute its missing counters.
 
+## Experimental duration scheduling (unreleased)
+
+With pytest-xdist 3.8.0 installed, enable cached duration ordering explicitly:
+
+```sh
+pytest -n auto --dist=loadscope --boorst-schedule -q tests/
+```
+
+The first successful complete run learns setup/call/teardown durations in pytest's
+cache. Later runs prioritize scope groups with larger estimated totals. Xdist still
+owns collection, worker dispatch, group membership, within-group order and fixture
+setup/teardown. Group execution order and worker assignment can change, including
+how often session/module fixtures are instantiated across workers. Cache persistence
+between CI runs is needed to use previously learned durations.
+
+This option works independently of `--boorst`; neither option enables the other.
+It requires CPython 3.10–3.14 with the GIL, pytest 7/8/9, and verified stock xdist
+3.8.0 scheduler code. Other scheduler plugins, unknown or modified implementations,
+serial runs, another distribution mode, a disabled cache provider, or
+`--no-loadscope-reorder` retain stock scheduling. Missing history uses stock order;
+new tests use the median known duration. Failed, interrupted, incomplete or crashed
+runs do not replace the cached history. A cache write failure does not change test
+outcomes; unreadable history makes the next run learn again. The summary explains
+activation or fallback.
+
+The guarded four-worker attrs comparison measured **0.61% less time** across five
+pairs; an earlier 10.72% result did not reproduce. This is a Python scheduling
+policy, not a Rust speedup or an established 5% improvement. Measure it on your own
+suite before adopting it. See the [experiment results](RESULTS.md#non-daemon-acceleration-experiments).
+
 ## Inspect a run
 
 Use the optional profiler with the same pytest arguments:
@@ -160,7 +190,7 @@ cargo test --locked --lib
 `uv.lock` and `Cargo.lock` pin the development environments. Maturin builds the
 PyO3 extension. GitHub CI installs built wheels and tests Python 3.10–3.14 on Linux,
 plus macOS and Windows smoke coverage, and rebuilds the source distribution.
-The Linux Python 3.10–3.14 wheel lanes also run ID, plugin-integration, profiler and installed-wheel
+The Linux Python 3.10–3.14 wheel lanes also run ID, plugin-integration, profiler, scheduling and installed-wheel
 smoke checks with pytest 7.4.4 and 8.4.2 in separate environments. The Python 3.12
 lane also runs the complete suite with pytest 9.0.2 and 9.0.3.
 Normal wheel-installation checks preserve pytest 6.2.5 in a separate environment

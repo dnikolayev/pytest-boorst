@@ -75,10 +75,12 @@ claim is made for them.
 
 Three ideas from the [rpytest architecture](https://github.com/neul-labs/rpytest/tree/db91fdde90f8b8e9e70420168b52ec872a61248c)
 were tested as isolated prototypes. **None passed the final 5% full-run
-improvement gate, so none is included in Boorst.** The preliminary 10.72%
+improvement gate.** The preliminary 10.72%
 scheduling result was excluded from acceptance because the guarded five-pair
-comparison did not reproduce it. These are rejected-candidate measurements,
-not speedups available with `--boorst`.
+comparison did not reproduce it. These measurements do not establish speedups
+available with `--boorst`. Duration ordering is now available separately as the
+experimental `--boorst-schedule` opt-in; the measurements remain unchanged.
+The linked JSON retains the original prototype decision at measurement time.
 
 All full runs used the same [attrs revision](https://github.com/python-attrs/attrs/tree/644b4e165bfbeee7e127de6fcbda08b64014316f),
 macOS ARM64, CPython 3.14.7 and pytest 9.1.1. Timings include fresh interpreter
@@ -90,7 +92,7 @@ run sequentially. Positive improvement means a lower candidate median.
 | Rust batch `-k 'not pickle'` matching | 7.067 s | 7.208 s | -1.99% | Reject: matching itself was only 0.11% of baseline time. |
 | Rust batch `-m 'not slow'` matching | 7.231 s | 7.480 s | -3.44% | Reject: matching itself was only 0.04% of baseline time. |
 | Rust batched phase totals | 7.223 s | 7.177 s | +0.63% | Reject: below the gate; only a small feasibility screen. |
-| Cached duration ordering of xdist scope groups | 4.098 s | 4.073 s | +0.61% | Reject: five pairs did not reproduce the preliminary gain. |
+| Cached duration ordering of xdist scope groups | 4.098 s | 4.073 s | +0.61% | Experimental opt-in only; five pairs did not reproduce the preliminary gain. |
 
 Filtering used two runs per mode and selector. The keyword case selected 1,302
 tests; the marker case selected all 1,413. All measured selected IDs, deselection
