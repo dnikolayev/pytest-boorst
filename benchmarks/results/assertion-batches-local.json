@@ -116,5 +116,5 @@
       "improvement_percent": -13.737801377226866
     }
   },
-  "measurement_scope": "Local candidate before integrating experimental static discovery; source hashes identify the measured Python files and native binary."
+  "measurement_scope": "Local 0.1.0 candidate; source hashes identify the measured Python files and native binary."
 }

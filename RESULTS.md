@@ -58,8 +58,8 @@ exit codes.
 The cold run used 32 native module batches; the warm run used none. Adapter
 verification has a startup cost even when cached bytecode avoids rewriting.
 [Raw samples and candidate source hashes](benchmarks/results/assertion-batches-local.json)
-identify the measured implementation before integration of the separate static
-mode. These short synthetic runs do not predict real-project or CI gains. The
+identify the measured 0.1.0 candidate implementation. These short synthetic runs
+do not predict real-project or CI gains. The
 historical ID/discovery receipts below predate this implementation.
 
 ## Non-daemon acceleration experiments
