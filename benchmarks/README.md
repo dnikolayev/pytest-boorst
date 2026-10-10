@@ -143,3 +143,45 @@ guards still apply. Selected parents that contain one another use stock discover
 to preserve pytest's fixture registration order. Groups below 32 files use stock discovery. CI requires at
 least 5% full-run improvement for this workload as well as the single-directory
 workload. Raw receipts report exact parity and the reuse count.
+
+## Static discovery
+
+Run the bounded synthetic comparison with an installed wheel or the matching
+source checkout on `PYTHONPATH`:
+
+```sh
+uv run --no-sync python benchmarks/static_discovery.py --output static-discovery-results.json
+```
+
+The script compares three alternating fresh-process pairs in serial mode. One
+workload has 64 test-pattern files that each simulate import cost with a 15 ms
+sleep and have no static test names, plus a retained parametrized test. A second
+has 64 ordinary test files plus the same parametrized test, exposing the extra
+parsing cost. Both modes use identical
+source, plugin loading and environment, with bytecode writes disabled.
+
+The receipt records raw times, medians, interpreter/pytest versions, measured
+source hashes from modules actually loaded by the selected interpreter, actual
+prefilter counts, and ordered-ID/phase-outcome parity. Changed source hashes across
+samples invalidate the comparison.
+These synthetic full-run comparisons illustrate this mode's tradeoff. They do not
+establish a general speedup or that static discovery retains every real test.
+
+Local CPython 3.14.7 / pytest 9.1.1 medians from five alternating pairs:
+
+| Synthetic workload | Stock median | Static median | Change in wall time |
+| --- | ---: | ---: | ---: |
+| 64 empty modules with a simulated 15 ms import delay; 2 retained tests | 1.5069 s | 0.1474 s | 90.22% less |
+| 64 ordinary modules; 66 tests | 0.1751 s | 0.1802 s | 2.89% more |
+
+Both comparisons preserved exact ordered test IDs, phase outcomes and exit codes.
+[Raw samples and measured source hashes](results/static-discovery-local.json)
+retain the negative control as well as the targeted benefit.
+
+The first workload skips all 64 empty modules; the control skips none. The delay
+is artificial, and these short local samples do not establish performance on a
+real suite. The receipt also retains an earlier shared-host comparison whose ordinary control
+was 41.74% slower with substantial timing variability. The final comparison ran
+without concurrent task checks or builds; short local timings remain noisy.
+Static discovery can omit runtime-only tests; outcome parity in these synthetic
+examples does not establish complete collection elsewhere.

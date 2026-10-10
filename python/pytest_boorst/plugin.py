@@ -147,6 +147,12 @@ def pytest_addoption(parser):
         help="Enable guarded Boorst acceleration for this pytest run.",
     )
     group.addoption(
+        "--boorst-static-discovery",
+        action="store_true",
+        default=False,
+        help="Experimentally skip files without static test names; run retained tests.",
+    )
+    group.addoption(
         "--boorst-profile",
         action="store_true",
         default=False,
@@ -175,6 +181,10 @@ def _enabled(config):
 def pytest_configure(config):
     if STATE_KEY is None:
         return
+    if config.getoption("boorst_static_discovery", default=False):
+        from ._static import install
+
+        install(config)
     if config.getoption("boorst_schedule", default=False):
         from ._schedule import install as install_schedule
 
