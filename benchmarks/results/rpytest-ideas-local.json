@@ -1,0 +1,461 @@
+{
+  "schema_version": 1,
+  "decision": "No candidate passed the final 5% full-run improvement gate; the preliminary 10.72% scheduling result was excluded because the guarded comparison did not reproduce it. No runtime change shipped.",
+  "environment": {
+    "platform": "macOS ARM64",
+    "python": "3.14.7",
+    "pytest": "9.1.1",
+    "xdist": "3.8.0",
+    "hypothesis_seed": 20261009
+  },
+  "corpus": {
+    "repository": "https://github.com/python-attrs/attrs",
+    "commit": "644b4e165bfbeee7e127de6fcbda08b64014316f",
+    "source": "checked-out src directory",
+    "full_inventory": 1413
+  },
+  "method": "Fresh subprocesses, fixed Hypothesis seed, isolated per-run caches and Hypothesis storage. Wall time includes interpreter startup. Trials were not concurrent.",
+  "filtering": {
+    "summary": [
+      {
+        "case": "keyword",
+        "stock_median": 7.066844875051174,
+        "native_median": 7.207727708446328,
+        "gain_percent": -1.993574726573195,
+        "parity": true,
+        "items": 1302,
+        "stock_stage_seconds": 0.007774437544867396,
+        "native_stage_seconds": 0.007578999502584338,
+        "stock_stage_fraction_percent": 0.11001285131239134
+      },
+      {
+        "case": "marker",
+        "stock_median": 7.230832145956811,
+        "native_median": 7.479641708545387,
+        "gain_percent": -3.440953372534038,
+        "parity": true,
+        "items": 1413,
+        "stock_stage_seconds": 0.002765646029729396,
+        "native_stage_seconds": 0.0024718130007386208,
+        "stock_stage_fraction_percent": 0.03824796335890377
+      },
+      {
+        "case": "none",
+        "stock_median": 7.319158645928837,
+        "native_median": 7.7696863955352455,
+        "gain_percent": -6.155458180388082,
+        "parity": true,
+        "items": 1413
+      }
+    ],
+    "correctness": {
+      "expression_comparisons": 84588,
+      "pytest_versions": [
+        "7.4.4",
+        "8.4.1",
+        "9.1.1"
+      ],
+      "fresh_process_pairs": 60,
+      "parity": [
+        "selected IDs and order",
+        "deselection hook batches and order",
+        "test phase outcomes",
+        "exit code"
+      ]
+    },
+    "samples": [
+      {
+        "case": "keyword",
+        "mode": "stock",
+        "seconds": 7.092385958065279,
+        "exit": 0,
+        "items": 1302,
+        "phases": 3902,
+        "ids_sha256": "7417dbd385183ddbc6cc80a2e8461a63af3e690e1882583ca37a9d80638a3b0e",
+        "deselected_batches_sha256": "d6e34ec7863b2b7a53117ee1f19e30f5c9804a8a1bacd02252d89dcd3ffe1664",
+        "phase_records_sha256": "1f0ca5cd1015a8950f0deae8b3b6dfbe3bcda0dd595caafb8891a3bc513a6303"
+      },
+      {
+        "case": "keyword",
+        "mode": "rust",
+        "seconds": 7.112548582954332,
+        "exit": 0,
+        "items": 1302,
+        "phases": 3902,
+        "ids_sha256": "7417dbd385183ddbc6cc80a2e8461a63af3e690e1882583ca37a9d80638a3b0e",
+        "deselected_batches_sha256": "d6e34ec7863b2b7a53117ee1f19e30f5c9804a8a1bacd02252d89dcd3ffe1664",
+        "phase_records_sha256": "1f0ca5cd1015a8950f0deae8b3b6dfbe3bcda0dd595caafb8891a3bc513a6303"
+      },
+      {
+        "case": "keyword",
+        "mode": "rust",
+        "seconds": 7.302906833938323,
+        "exit": 0,
+        "items": 1302,
+        "phases": 3902,
+        "ids_sha256": "7417dbd385183ddbc6cc80a2e8461a63af3e690e1882583ca37a9d80638a3b0e",
+        "deselected_batches_sha256": "d6e34ec7863b2b7a53117ee1f19e30f5c9804a8a1bacd02252d89dcd3ffe1664",
+        "phase_records_sha256": "1f0ca5cd1015a8950f0deae8b3b6dfbe3bcda0dd595caafb8891a3bc513a6303"
+      },
+      {
+        "case": "keyword",
+        "mode": "stock",
+        "seconds": 7.04130379203707,
+        "exit": 0,
+        "items": 1302,
+        "phases": 3902,
+        "ids_sha256": "7417dbd385183ddbc6cc80a2e8461a63af3e690e1882583ca37a9d80638a3b0e",
+        "deselected_batches_sha256": "d6e34ec7863b2b7a53117ee1f19e30f5c9804a8a1bacd02252d89dcd3ffe1664",
+        "phase_records_sha256": "1f0ca5cd1015a8950f0deae8b3b6dfbe3bcda0dd595caafb8891a3bc513a6303"
+      },
+      {
+        "case": "marker",
+        "mode": "stock",
+        "seconds": 7.1698382089380175,
+        "exit": 0,
+        "items": 1413,
+        "phases": 4235,
+        "ids_sha256": "c52fd270ae2df54c648b2d27e84c97c90913df3086c44778b9f2333308b0f207",
+        "deselected_batches_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "phase_records_sha256": "f8fdf0405806a0c0728aa424ffc8d503d10af76f1b903bd7f5116dbc4c48853e"
+      },
+      {
+        "case": "marker",
+        "mode": "rust",
+        "seconds": 7.505726750008762,
+        "exit": 0,
+        "items": 1413,
+        "phases": 4235,
+        "ids_sha256": "c52fd270ae2df54c648b2d27e84c97c90913df3086c44778b9f2333308b0f207",
+        "deselected_batches_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "phase_records_sha256": "f8fdf0405806a0c0728aa424ffc8d503d10af76f1b903bd7f5116dbc4c48853e"
+      },
+      {
+        "case": "marker",
+        "mode": "rust",
+        "seconds": 7.453556667082012,
+        "exit": 0,
+        "items": 1413,
+        "phases": 4235,
+        "ids_sha256": "c52fd270ae2df54c648b2d27e84c97c90913df3086c44778b9f2333308b0f207",
+        "deselected_batches_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "phase_records_sha256": "f8fdf0405806a0c0728aa424ffc8d503d10af76f1b903bd7f5116dbc4c48853e"
+      },
+      {
+        "case": "marker",
+        "mode": "stock",
+        "seconds": 7.291826082975604,
+        "exit": 0,
+        "items": 1413,
+        "phases": 4235,
+        "ids_sha256": "c52fd270ae2df54c648b2d27e84c97c90913df3086c44778b9f2333308b0f207",
+        "deselected_batches_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "phase_records_sha256": "f8fdf0405806a0c0728aa424ffc8d503d10af76f1b903bd7f5116dbc4c48853e"
+      },
+      {
+        "case": "none",
+        "mode": "stock",
+        "seconds": 7.38657216692809,
+        "exit": 0,
+        "items": 1413,
+        "phases": 4235,
+        "ids_sha256": "c52fd270ae2df54c648b2d27e84c97c90913df3086c44778b9f2333308b0f207",
+        "deselected_batches_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "phase_records_sha256": "f8fdf0405806a0c0728aa424ffc8d503d10af76f1b903bd7f5116dbc4c48853e"
+      },
+      {
+        "case": "none",
+        "mode": "rust",
+        "seconds": 7.651733041042462,
+        "exit": 0,
+        "items": 1413,
+        "phases": 4235,
+        "ids_sha256": "c52fd270ae2df54c648b2d27e84c97c90913df3086c44778b9f2333308b0f207",
+        "deselected_batches_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "phase_records_sha256": "f8fdf0405806a0c0728aa424ffc8d503d10af76f1b903bd7f5116dbc4c48853e"
+      },
+      {
+        "case": "none",
+        "mode": "rust",
+        "seconds": 7.887639750028029,
+        "exit": 0,
+        "items": 1413,
+        "phases": 4235,
+        "ids_sha256": "c52fd270ae2df54c648b2d27e84c97c90913df3086c44778b9f2333308b0f207",
+        "deselected_batches_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "phase_records_sha256": "f8fdf0405806a0c0728aa424ffc8d503d10af76f1b903bd7f5116dbc4c48853e"
+      },
+      {
+        "case": "none",
+        "mode": "stock",
+        "seconds": 7.251745124929585,
+        "exit": 0,
+        "items": 1413,
+        "phases": 4235,
+        "ids_sha256": "c52fd270ae2df54c648b2d27e84c97c90913df3086c44778b9f2333308b0f207",
+        "deselected_batches_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "phase_records_sha256": "f8fdf0405806a0c0728aa424ffc8d503d10af76f1b903bd7f5116dbc4c48853e"
+      }
+    ],
+    "prototype_sha256": {
+      "src/lib.rs": "843f4e0c9bce63c98e1311b254b18527b4fcbba11f3f889c731597170d54517d",
+      "filter_adapter.py": "9346dddbe91f87b1494ddf0472a3650da47744d31de5e2d39931e2a584ac4359",
+      "entry.py": "5cbecc0e0aaa045a5c0eeb84e8dfe820dd7bed79ec675053aa09a045119519d3",
+      "_filter_probe.abi3.so": "afc5c37e7289774eabb18868fea0374410f7de9393fe95fa4885fd1291e2a3d5",
+      "screen.py": "92556c8f45820f95c498de704029088a1716713fc51dec80374474805cc21dc3",
+      "check.py": "9b4c51f215f6f81f646b60a7d83a3710618ba0c7cba3c261eff00a4ff5def2ad",
+      "parity_check.py": "767f06c74c6276a2d1c003d7bc0e9b414bf567caaca50cae18101cf16522e20b",
+      "parity_check_ascii.py": "9cc05f182dc55293bfef4dd9e2389775c9c7182a4621de22029317f8b4580aac"
+    },
+    "limits": [
+      "Two samples per variant: full-process differences may reflect noise.",
+      "Marker selector excludes no attrs tests; it measures matching overhead on 1413 items.",
+      "No-filter native code has zero native calls; its timing difference must not be attributed solely to matching.",
+      "Results do not establish behavior with arbitrary plugins, descriptors or custom pytest items.",
+      "Prototype guards for arbitrary plugin mutations and custom items are incomplete."
+    ]
+  },
+  "phase_aggregation": {
+    "microbenchmark": {
+      "records": 300000,
+      "seconds": {
+        "python": [
+          0.04601379204541445,
+          0.04503370902966708,
+          0.04659200005698949,
+          0.04626083408948034,
+          0.047239167033694685
+        ],
+        "per-report": [
+          0.053549624979496,
+          0.04957720800302923,
+          0.048146040993742645,
+          0.048593000043183565,
+          0.04901099996641278
+        ],
+        "batch": [
+          0.06450954207684845,
+          0.05950637499336153,
+          0.05984645802527666,
+          0.05962020892184228,
+          0.059733000001870096
+        ]
+      },
+      "median_seconds": {
+        "python": 0.04626083408948034,
+        "per-report": 0.04901099996641278,
+        "batch": 0.059733000001870096
+      },
+      "totals": {
+        "python": {
+          "setup": 499.9544999999983,
+          "call": 499.9544999999983,
+          "teardown": 499.9544999999983
+        },
+        "per-report": {
+          "setup": 499.9544999999983,
+          "call": 499.9544999999983,
+          "teardown": 499.9544999999983
+        },
+        "batch": {
+          "setup": 499.9544999999983,
+          "call": 499.9544999999983,
+          "teardown": 499.9544999999983
+        }
+      }
+    },
+    "full_run_samples": [
+      {
+        "mode": "python",
+        "seconds_process": 7.287619040929712,
+        "exit": 0,
+        "nodes": 1413,
+        "phases": 4235,
+        "ids_sha256": "c52fd270ae2df54c648b2d27e84c97c90913df3086c44778b9f2333308b0f207",
+        "reports_sha256": "dd1835d033dfcd9cbbe659deb5cf3d41aca173d4bf88d81c54a74b6d7f143c42"
+      },
+      {
+        "mode": "batch",
+        "seconds_process": 7.1769474589964375,
+        "exit": 0,
+        "nodes": 1413,
+        "phases": 4235,
+        "ids_sha256": "c52fd270ae2df54c648b2d27e84c97c90913df3086c44778b9f2333308b0f207",
+        "reports_sha256": "dd1835d033dfcd9cbbe659deb5cf3d41aca173d4bf88d81c54a74b6d7f143c42"
+      },
+      {
+        "mode": "python",
+        "seconds_process": 7.157678582938388,
+        "exit": 0,
+        "nodes": 1413,
+        "phases": 4235,
+        "ids_sha256": "c52fd270ae2df54c648b2d27e84c97c90913df3086c44778b9f2333308b0f207",
+        "reports_sha256": "dd1835d033dfcd9cbbe659deb5cf3d41aca173d4bf88d81c54a74b6d7f143c42"
+      }
+    ],
+    "median_seconds": {
+      "python": 7.22264881193405,
+      "batch": 7.1769474589964375
+    },
+    "prototype_sha256": {
+      "src/lib.rs": "49abc7cb239cea26b74a90fa58c7a53de4a60661c1f4042ff8c9d5890c0418fc",
+      "entry.py": "136d2bdebb2672176dca1f98c25c205776edee17209447083daf941568bb9271",
+      "run.py": "a4849ebcfdaa7911123f11635738161058ee335bd11ca86eac3291f6319f78b4"
+    },
+    "limits": [
+      "Only one batched full run, bracketed by two Python runs; this is a feasibility screen, not statistical evidence of improvement.",
+      "Existing Boorst reporting performs Python additions, not one Rust call per report."
+    ]
+  },
+  "duration_scheduling": {
+    "workers": 4,
+    "baseline": "xdist loadscope",
+    "samples": [
+      {
+        "mode": "stock",
+        "seconds": 4.153436082997359,
+        "exit": 0,
+        "returncode": 0,
+        "schedule_reason": null
+      },
+      {
+        "mode": "enabled",
+        "seconds": 4.046864332980476,
+        "exit": 0,
+        "returncode": 0,
+        "schedule_reason": "ordering loadscope groups by cached durations"
+      },
+      {
+        "mode": "enabled",
+        "seconds": 4.073204832966439,
+        "exit": 0,
+        "returncode": 0,
+        "schedule_reason": "ordering loadscope groups by cached durations"
+      },
+      {
+        "mode": "stock",
+        "seconds": 4.098070042091422,
+        "exit": 0,
+        "returncode": 0,
+        "schedule_reason": null
+      },
+      {
+        "mode": "stock",
+        "seconds": 4.081250832998194,
+        "exit": 0,
+        "returncode": 0,
+        "schedule_reason": null
+      },
+      {
+        "mode": "enabled",
+        "seconds": 4.320504707982764,
+        "exit": 0,
+        "returncode": 0,
+        "schedule_reason": "ordering loadscope groups by cached durations"
+      },
+      {
+        "mode": "enabled",
+        "seconds": 4.1046426249668,
+        "exit": 0,
+        "returncode": 0,
+        "schedule_reason": "ordering loadscope groups by cached durations"
+      },
+      {
+        "mode": "stock",
+        "seconds": 4.131015125080012,
+        "exit": 0,
+        "returncode": 0,
+        "schedule_reason": null
+      },
+      {
+        "mode": "stock",
+        "seconds": 4.096082208910957,
+        "exit": 0,
+        "returncode": 0,
+        "schedule_reason": null
+      },
+      {
+        "mode": "enabled",
+        "seconds": 3.8873017500154674,
+        "exit": 0,
+        "returncode": 0,
+        "schedule_reason": "ordering loadscope groups by cached durations"
+      }
+    ],
+    "median_seconds": {
+      "stock": 4.098070042091422,
+      "enabled": 4.073204832966439
+    },
+    "improvement_percent": 0.6067541274207389,
+    "parity": true,
+    "activated": true,
+    "stock_unchanged": true,
+    "items": 1413,
+    "phase_reports": 4235,
+    "ids_sha256": "c52fd270ae2df54c648b2d27e84c97c90913df3086c44778b9f2333308b0f207",
+    "reports_sha256": "85e20ad9bd60e6e3677011812c659885eda0d8f148d3ae8564ad0b9ee6677b26",
+    "history_sha256": "fe82cf1773be6ffe7eea6494477228b4d171e387d98db01eaf227e6ae26b344c",
+    "training_seconds": 4.490430457983166,
+    "harness_sha256": "8225cd6960e092477e8988952eb4f35626df4d9e8daaa5f3ec4e61b3bd381bf8",
+    "candidate_wheel_sha256": "4c66fe5773c4a3dd0eecd75d0098e39810fb40f249b14f83403b1261531eddf9",
+    "candidate_source_sha256": {
+      "plugin.py": "8178326ecafcca54dfce07dddbd7d3b66f2468e213c535a3090f7e59cd8bb9f6",
+      "_schedule.py": "00bb9ad4d14626feb5fa9842c39c9e999cce88f3402ea2d95b06656959cca3f9"
+    },
+    "preliminary_screen": {
+      "load": {
+        "seconds": [
+          4.5429661250673234
+        ],
+        "median": 4.5429661250673234
+      },
+      "loadscope": {
+        "seconds": [
+          4.319170375005342,
+          4.528681875090115,
+          4.222813458065502
+        ],
+        "median": 4.319170375005342
+      },
+      "worksteal": {
+        "seconds": [
+          3.985289791948162,
+          4.0285678749205545
+        ],
+        "median": 4.006928833434358
+      },
+      "duration": {
+        "seconds": [
+          3.7870566659839824,
+          3.8560659589711577,
+          4.415428249980323
+        ],
+        "median": 3.8560659589711577
+      },
+      "loadscope_improvement_pct": 10.722068726765876,
+      "worksteal_improvement_pct": 3.7650500104813522,
+      "parity": {
+        "items": 1413,
+        "report_count": 4235,
+        "collection_sha256": "c52fd270ae2df54c648b2d27e84c97c90913df3086c44778b9f2333308b0f207",
+        "reports_sha256": "e985151ec82ac44cea7682c1782aecae318efc4bf7c0b6511e03ea124d8a29f0"
+      },
+      "notes": [
+        "Four workers fixed; all same full attrs inventory and fresh-process commands.",
+        "Candidate history frozen from first stock loadscope run.",
+        "Fresh per-run Hypothesis storage, fixed seed20261009. Hypothesis test generation still timing sensitive.",
+        "One candidate paired run slower than stock; short screen, no statistical guarantee.",
+        "loadscope grouping preserved. worksteal does not preserve same groups.",
+        "Optimization is Python scheduling policy and explicitly changes group order; not Rust speedup.",
+        "Prototype timings precede source/runtimeguard production integration; production must be remeasured."
+      ]
+    },
+    "limits": [
+      "Ordering whole scope groups is an opt-in Python scheduling policy, not Rust acceleration.",
+      "Preliminary 10.72% result did not reproduce with the guarded installed wheel.",
+      "History was frozen after one training run. Receipt retains its hash, not the values or per-worker timings.",
+      "Parity compares ordered worker collections and sorted node/phase/outcome/xfail records; cross-worker execution order intentionally differs.",
+      "Hashes identify retained local prototypes; this summary is not a standalone reproduction package."
+    ]
+  }
+}
