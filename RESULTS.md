@@ -1,11 +1,12 @@
 # Evidence and optimization decisions
 
-Boorst currently targets duplicate ASCII parameter-ID bookkeeping and a narrow
-explicit-file directory-discovery plan. Enabling it is not evidence of a speedup.
+Boorst targets duplicate ASCII parameter-ID bookkeeping, a narrow explicit-file
+directory-discovery plan, and guarded module batches of assertion-location updates.
+Enabling it is not evidence of a speedup.
 See [README measurements](README.md#performance-evidence) for three-run full-pytest
 synthetic results. These results do not predict application CI duration.
 
-## Proposal review
+## Optimization decisions
 
 | Proposal | Decision and evidence |
 | --- | --- |
@@ -19,7 +20,7 @@ synthetic results. These results do not predict application CI duration.
 | Enable Windows directory reuse | Deferred pending parity validation. Windows native-ID wheels remain supported; there is no established Windows-specific discovery defect. |
 | Borrow Rust keys and reduce allocations | Deferred. Borrowing immutable input keys can reduce allocations, but changes must preserve the evolving occupied-ID set. No additional whole-run gain of at least 5% is demonstrated. |
 | Add phase and module profiling | Implemented as `--boorst-profile`. Reports collection, test loop, setup/call/teardown sums, and the 10 largest module collection totals. Reported wall times cover observed hook spans, and module totals are exclusive collect-report work. Outer plugin wrappers may add work outside those spans. Startup imports require Python's separate import-time tracing. |
-| Public-project corpus and regression evidence | A prepared-checkout harness is included. It alternates three stock/enabled collection pairs and verifies exact ordered IDs, collection errors and exit status. Public controls and unmeasured candidates are listed below. Existing full-run synthetic CI gates remain. There is no ten-project zero-regression guarantee. |
+| Collection parity controls | A prepared-checkout harness alternates three stock/enabled collection pairs and verifies exact ordered IDs, collection errors and exit status. Existing full-run synthetic CI gates remain; collection checks alone do not establish a speedup. |
 | Collect once / partition files under xdist | Deferred. Stock xdist relies on matching worker inventories and numeric item indices. Partitioning would require a scheduler and change collection-hook inputs, rather than being a transparent adapter. |
 | Rewrite `--lf` to failing files | Rejected. Stock already skips unrelated imports in supported cases; stale cached node IDs can make unconditional file narrowing select a different set of tests. |
 | Lazy-load third-party plugins by option use | Rejected as a default. Plugins may supply autouse fixtures or hooks without any command-line flag. Option use cannot establish that a plugin is unnecessary. |
@@ -30,52 +31,41 @@ next batch observes the replacement and restores stock dispatch. Worker reportin
 errors, repeated invocation, and profiler cleanup have focused compatibility
 coverage. GitHub CI supplies the full interpreter/platform validation gate.
 
-## Public collection controls
+## Assertion-location batching
 
-Measurements below are collection-only and include interpreter startup and the
-same receipt observer. They do not execute tests or establish fixture, runtime,
-or end-to-end CI savings. Timed runs exclude the optional profiler; its observation
-is collected separately. Bytecode writes are disabled in both modes and pytest's
-cache is redirected outside each checkout. Three samples do not establish
-statistical non-regression.
+Version 0.1.0 adds module-batched location updates to verified fresh-file assertion
+rewriting on pytest 9.1.1 and GIL-enabled CPython 3.14. A private rewriter subclass
+retains pytest's generated assertion code and batches location updates at module
+boundaries. The native helper validates supported AST types,
+metadata and coordinates before applying writes. A decline replays stock updates.
 
-Measured on macOS ARM64 / CPython 3.14.7 with candidate Python adapters and the
-unchanged alpha8 native helper. Both source checkouts remained clean.
+Other pytest/Python versions retain existing ID/discovery behavior and stock
+assertion rewriting. Modified methods or AST metadata, tracing/profiling/monitoring,
+unsupported configuration, missing native helpers and the assertion-pass hook use
+stock rewriting. Tuple-assertion warnings flush pending locations before continuing
+with stock updates. Direct `rewrite_asserts` calls retain stock behavior.
 
-| Public source revision | Pytest | Items | Stock median | Enabled median | Native batches / directory reuses |
-| --- | --- | ---: | ---: | ---: | ---: |
-| [httpx b5addb6](https://github.com/encode/httpx/tree/b5addb64f0161ff6bfe94c124ef76f6a1fba5254) | 8.4.1 | 1,418 | 2.147 s | 2.249 s | 0 / 0 |
-| [attrs 644b4e1](https://github.com/python-attrs/attrs/tree/644b4e165bfbeee7e127de6fcbda08b64014316f) | 9.1.1 | 1,413 | 1.904 s | 1.635 s | 0 / 0 |
+Five alternating fresh-process pairs on macOS ARM64, CPython 3.14.7 and pytest
+9.1.1 used 32 modules, 256 tests and 4,096 assertions. Times cover complete pytest
+runs. Separate observation runs confirmed exact ordered IDs, phase outcomes and
+exit codes.
 
-Exact ordered-ID, collection-error and exit-code parity passed in all timed runs
-and the separate profile runs. Httpx observed 157 below-cutoff batches and one
-already-unique batch; attrs observed 206 below-cutoff batches. Neither exercised
-an acceleration path. The faster attrs median therefore does **not** establish a
-Boorst speedup, and the slower httpx median is retained without a non-regression
-claim. [Sanitized samples and hashes](benchmarks/results/alpha9-public-collection-local.json)
-bind the candidate sources, native helper, harness and public project revisions.
+| Synthetic workload | Stock | Enabled | Change in wall time |
+| --- | ---: | ---: | ---: |
+| Cold rewritten-bytecode cache | 1.1090 s | 0.9177 s | 17.25% less |
+| Warm rewritten-bytecode cache | 0.2231 s | 0.2537 s | 13.74% more (31 ms) |
 
-
-The following public repositories were inventoried as additional corpus
-candidates. They were not measured in this bounded screen; no timing or parity
-claim is made for them.
-
-| Repository | Status |
-| --- | --- |
-| [Rich](https://github.com/Textualize/rich) | Source download timed out; unmeasured. |
-| [Hypothesis](https://github.com/HypothesisWorks/hypothesis) | Unmeasured. |
-| [Pydantic](https://github.com/pydantic/pydantic) | Unmeasured. |
-| [Black](https://github.com/psf/black) | Unmeasured. |
-| [NumPy](https://github.com/numpy/numpy) | Unmeasured. |
-| [pandas](https://github.com/pandas-dev/pandas) | Unmeasured. |
-| [SQLAlchemy](https://github.com/sqlalchemy/sqlalchemy) | Unmeasured. |
-| [Home Assistant](https://github.com/home-assistant/core) | Unmeasured. |
+The cold run used 32 native module batches; the warm run used none. Adapter
+verification has a startup cost even when cached bytecode avoids rewriting.
+[Raw samples and candidate source hashes](benchmarks/results/assertion-batches-local.json)
+identify the measured implementation before integration of the separate static
+mode. These short synthetic runs do not predict real-project or CI gains. The
+historical ID/discovery receipts below predate this implementation.
 
 ## Non-daemon acceleration experiments
 
-Three ideas from the [rpytest architecture](https://github.com/neul-labs/rpytest/tree/db91fdde90f8b8e9e70420168b52ec872a61248c)
-were tested as isolated prototypes. **None passed the final 5% full-run
-improvement gate.** The preliminary 10.72%
+Filtering, reporting and scheduling measurements below used isolated prototypes.
+**None passed their final 5% full-run improvement gate.** The preliminary 10.72%
 scheduling result was excluded from acceptance because the guarded five-pair
 comparison did not reproduce it. These measurements do not establish speedups
 available with `--boorst`. Duration ordering and bounded phase aggregation are now
@@ -83,9 +73,9 @@ available separately as `--boorst-schedule` and `--boorst-batch-reporting`;
 the original measurements remain unchanged.
 The linked JSON retains the original prototype decision at measurement time.
 
-All full runs used the same [attrs revision](https://github.com/python-attrs/attrs/tree/644b4e165bfbeee7e127de6fcbda08b64014316f),
-macOS ARM64, CPython 3.14.7 and pytest 9.1.1. Timings include fresh interpreter
-startup. Runs used a fixed Hypothesis seed and isolated caches; comparisons were
+All full runs used the same 1,413-test workload on macOS ARM64, CPython 3.14.7
+and pytest 9.1.1. Timings include fresh interpreter
+startup. Runs used a fixed random seed and isolated caches; comparisons were
 run sequentially. Positive improvement means a lower candidate median.
 
 | Experiment | Baseline | Candidate | Improvement | Decision |
@@ -123,7 +113,7 @@ comparison. Duration history was frozen for the comparison; the receipt retains
 its hash, not its values or per-worker timing. This Python scheduling policy did
 not demonstrate a qualifying gain, and it is not a Rust acceleration claim.
 
-[Samples, parity hashes and prototype identities](benchmarks/results/rpytest-ideas-local.json)
+[Samples, parity hashes and prototype identities](benchmarks/results/acceleration-ideas-local.json)
 retain the preliminary result alongside the longer comparison. The summary is
 evidence for these local decisions, not a standalone reproduction package or a
 prediction for another project's CI. Native AST-only collection and cross-run
@@ -154,8 +144,8 @@ This component result does not establish an end-to-end benefit.
 [Samples and source identities](benchmarks/results/batched-reporting-component.json)
 record this comparison; the earlier full-run result belongs to the prototype.
 
-A combined installed-wheel check on the attrs revision above used four xdist
-workers with `loadscope`. Stock profiling, first-run learning and warm duration
+A combined installed-wheel check used the same 1,413-test workload with four xdist
+workers and `loadscope`. Stock profiling, first-run learning and warm duration
 ordering collected the same 1,413 items and produced identical outcomes for all
 4,235 phase reports. Both enabled runs confirmed native aggregation of every
 report, with totals matching an independent observer. This was a compatibility

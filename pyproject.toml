@@ -4,15 +4,15 @@ build-backend = "maturin"
 
 [project]
 name = "pytest-boorst"
-version = "0.1.0a10"
-description = "Experimental Rust-powered acceleration for pytest"
+version = "0.1.0"
+description = "Guarded Rust-powered acceleration for pytest"
 requires-python = ">=3.10"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 dependencies = ["pytest"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Framework :: Pytest",
     "Programming Language :: Python :: 3",
     "Programming Language :: Rust",

@@ -379,11 +379,13 @@ def test_worker_output_is_serializable_and_only_enabled(config, monkeypatch):
     make_ids(["case"] * 80, config=config).make_unique_parameterset_ids()
     state = config.stash[plugin.STATE_KEY]
     state["directory_reuses"] = 3
+    state["assertions"]["native_batches"] = 2
     plugin.pytest_sessionfinish(SimpleNamespace(config=config))
     worker = json.loads(json.dumps(config.workeroutput))["pytest_boorst"]
     assert worker["native_calls"] == 1
     assert worker["native_ids"] == 80
     assert worker["directory_reuses"] == 3
+    assert worker["assertions"]["native_batches"] == 2
 
 
 def test_worker_summary_sums_snapshots_without_controller_or_double_counts(
@@ -403,6 +405,13 @@ def test_worker_summary_sums_snapshots_without_controller_or_double_counts(
             "fallback_calls": 2,
             "fallback_reasons": {"below cutoff": 2},
             "directory_reuses": 3,
+            "assertions": {
+                "status": "active",
+                "reason": "verified assertion location batching",
+                "native_batches": 2,
+                "assertions": 8,
+                "fallback_batches": 1,
+            },
             "largest_batches": [
                 {
                     "nodeid": "tests/test_cases.py::test_case",
@@ -424,6 +433,9 @@ def test_worker_summary_sums_snapshots_without_controller_or_double_counts(
     assert summary["fallback_calls"] == 4
     assert summary["fallback_reasons"] == {"below cutoff": 4}
     assert summary["directory_reuses"] == 6
+    assert summary["assertions"]["native_batches"] == 4
+    assert summary["assertions"]["assertions"] == 16
+    assert summary["assertions"]["fallback_batches"] == 2
     assert summary["largest_batches"][0]["worker"] == "gw1"
     assert state["native_calls"] == 999
     assert "worker" not in state["worker_states"]["gw0"]["largest_batches"][0]

@@ -1,0 +1,120 @@
+{
+  "python": "3.14.7",
+  "pytest": "9.1.1",
+  "package": "0.1.0",
+  "platform": "Darwin arm64",
+  "files": 32,
+  "tests_per_file": 8,
+  "assertions_per_test": 16,
+  "repeats": 5,
+  "timing": "fresh full-run processes; parity receipts excluded from timing",
+  "package_source_sha256": {
+    "__init__.py": "4975a54517f6aad830a5704698f82f1f43c97b43106fabd7f6b7fffa43414c01",
+    "__main__.py": "ad4071055d02b85a46122edac2906a7c555fbbafc8e20bd5b75b2f16f64de76a",
+    "_assertion_fingerprints.py": "f85fe0b2d83b2957cda496de16b547df7399705b2362fe5e5948de1e7b832293",
+    "_assertion_schema.py": "69f5966ec06b4d1547ec1e28c8ce81ea4822111a4d45dc3c1a4536e36a340107",
+    "_assertions.py": "22349065dc40add83f633ca64bac56c66469501c6014f250070f66cbff6880bd",
+    "_discovery.py": "78bf9036703452fb7339b8fe7a14002ed810aa82877530bd6723efc7a53d049e",
+    "_ids.py": "2d192fd76eddc0d0c58f24cc0f2b7317c232142fefc69b29e819599488b923a7",
+    "_profile.py": "a4bc7d39131e0a73ad25d0b5d77c3a3bc505fb4f7bd602597ec62d3d943eddde",
+    "_schedule.py": "dddbd3f5b9791a56a99b3e4adeedeb7340bd6ce5290870c4767b9883f5e63fd0",
+    "plugin.py": "2b466977bf267f9608f6f18bfc27060d7185382b174bdbf49693a29242c56ba9"
+  },
+  "native_sha256": "0d17ebb9d95bb862edf94afc6813d817763238ba87d36148ef72a051de6a3088",
+  "benchmark_sha256": "29d943c4ca685a9bab4cdbf2b874606bced9e30f429e7173c045007e8254d728",
+  "scenarios": {
+    "cold": {
+      "parity": true,
+      "parity_sha256": "4a9826386a5deb6ab073a6677555c642a97296a8097714ad6ec773db235311a1",
+      "state": {
+        "stock": null,
+        "enabled": {
+          "status": "active",
+          "reason": "ASCII parameter ID deduplication",
+          "native_calls": 0,
+          "native_ids": 0,
+          "fallback_calls": 0,
+          "fallback_reasons": {},
+          "largest_batches": [],
+          "assertions": {
+            "status": "active",
+            "reason": "verified assertion location batching",
+            "native_batches": 32,
+            "assertions": 4096,
+            "fallback_batches": 0
+          },
+          "discovery_status": "fallback",
+          "directory_reuses": 0
+        }
+      },
+      "seconds": {
+        "stock": [
+          1.1169442500686273,
+          1.1090422079432756,
+          1.092086417018436,
+          1.0935933330329135,
+          1.1120129160117358
+        ],
+        "enabled": [
+          0.9780431250110269,
+          0.9083570000948384,
+          0.9177156249061227,
+          0.9729948750464246,
+          0.9136033749673516
+        ]
+      },
+      "median_seconds": {
+        "stock": 1.1090422079432756,
+        "enabled": 0.9177156249061227
+      },
+      "improvement_percent": 17.251515016003673
+    },
+    "warm": {
+      "parity": true,
+      "parity_sha256": "4a9826386a5deb6ab073a6677555c642a97296a8097714ad6ec773db235311a1",
+      "state": {
+        "stock": null,
+        "enabled": {
+          "status": "active",
+          "reason": "ASCII parameter ID deduplication",
+          "native_calls": 0,
+          "native_ids": 0,
+          "fallback_calls": 0,
+          "fallback_reasons": {},
+          "largest_batches": [],
+          "assertions": {
+            "status": "active",
+            "reason": "verified assertion location batching",
+            "native_batches": 0,
+            "assertions": 0,
+            "fallback_batches": 0
+          },
+          "discovery_status": "fallback",
+          "directory_reuses": 0
+        }
+      },
+      "seconds": {
+        "stock": [
+          0.23754045797977597,
+          0.22136291698552668,
+          0.22203633293975145,
+          0.22309245902579278,
+          0.22752316703554243
+        ],
+        "enabled": [
+          0.2537404579343274,
+          0.25406299997121096,
+          0.25207895797211677,
+          0.2611937909387052,
+          0.2507569589652121
+        ]
+      },
+      "median_seconds": {
+        "stock": 0.22309245902579278,
+        "enabled": 0.2537404579343274
+      },
+      "improvement_percent": -13.737801377226866
+    }
+  },
+  "measurement_scope": "Local candidate before integrating experimental static discovery; source hashes identify the measured Python files and native binary."
+}

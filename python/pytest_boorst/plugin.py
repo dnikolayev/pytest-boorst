@@ -196,7 +196,7 @@ def pytest_configure(config):
         install(config, batch_reporting=batch_reporting)
     state = {
         "status": "disabled",
-        "reason": "use --boorst or set PYTEST_BOORST=1 to enable the alpha",
+        "reason": "use --boorst or set PYTEST_BOORST=1 to enable acceleration",
         "native_calls": 0,
         "native_ids": 0,
         "fallback_calls": 0,
@@ -206,6 +206,9 @@ def pytest_configure(config):
     config.stash[STATE_KEY] = state
     if not _enabled(config):
         return
+    from ._assertions import install as install_assertions
+
+    install_assertions(config, state)
     state.update(status="fallback", reason="unsupported interpreter or pytest version")
     if (
         not _id_hashes(pytest.__version__)
@@ -385,6 +388,14 @@ def pytest_terminal_summary(terminalreporter, config):
         terminalreporter.write_line(
             f"boorst: {state['directory_reuses']} directory reports reused"
         )
+    assertions = state.get("assertions")
+    if assertions:
+        terminalreporter.write_line(
+            f"boorst: assertions {assertions['status']} ({assertions['reason']}), "
+            f"{assertions['native_batches']} native module batches "
+            f"({assertions['assertions']} assertions), "
+            f"{assertions['fallback_batches']} stock batches"
+        )
 
 
 @pytest.hookimpl(trylast=True)
@@ -410,6 +421,8 @@ def pytest_sessionfinish(session):
     config.workeroutput["pytest_boorst"]["directory_reuses"] = state.get(
         "directory_reuses", 0
     )
+    if "assertions" in state:
+        config.workeroutput["pytest_boorst"]["assertions"] = dict(state["assertions"])
 
 
 @pytest.hookimpl(optionalhook=True)
@@ -449,4 +462,20 @@ def _summary_state(state):
     summary["reason"] = "; ".join(
         sorted({worker["reason"] for worker in workers.values()})
     )
+    assertions = [
+        worker["assertions"] for worker in workers.values() if "assertions" in worker
+    ]
+    if assertions:
+        summary["assertions"] = {
+            "status": "active"
+            if any(item["status"] == "active" for item in assertions)
+            else "fallback",
+            "reason": "; ".join(sorted({item["reason"] for item in assertions})),
+            **{
+                name: sum(item[name] for item in assertions)
+                for name in ("native_batches", "assertions", "fallback_batches")
+            },
+        }
+    else:
+        summary.pop("assertions", None)
     return summary

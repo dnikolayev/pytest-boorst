@@ -7,8 +7,8 @@ uv run --no-sync maturin develop --release --locked
 uv run --no-sync python benchmarks/run.py --size 10000 --repeats 7
 ```
 
-The adapter supports pytest 9.0.2, 9.0.3, and 9.1.1. Use a separate environment
-for each version, install the built wheel without changing that version, and run
+The ID adapter supports verified implementations on pytest 7/8/9. Use a separate
+environment for each version, install the built wheel without changing that version, and run
 the same harness. Each receipt identifies its installed pytest version; the
 initial observations below apply only to pytest 9.1.1.
 
@@ -40,7 +40,7 @@ comparison identifies how much additional benefit Rust contributes.
 Acceptance target: at least 10% less full-run time on the declared duplicate-heavy
 workload, repeatable outside measurement noise, with no material control regression.
 The Rust helper must also improve on optimized Python including conversion cost.
-Public-project trials are compatibility controls when they do not exercise large
+Prepared-suite trials are compatibility controls when they do not exercise large
 duplicate-ID batches.
 
 ## Peak memory and CPU controls
@@ -54,7 +54,7 @@ uv run --no-sync python benchmarks/memory.py --scenario unique --repeats 5
 
 These runs use the same generated tests and compare all three modes. The resource
 recorder adds an identical observer to each mode. Small and unique workloads must
-report zero native batches; duplicate workloads must report one. CPU time helps
+report zero native ID batches; duplicate workloads must report one. CPU time helps
 investigate shared-host scheduling noise but does not replace end-to-end wall time.
 
 The Python comparison's `native_calls` counter represents calls through the adapter
@@ -79,15 +79,8 @@ Duplicate collection was about four times faster than stock. Full-run time fell
 7.04 ms in Python for duplicates, including conversion; collision helper times
 were 3.11 ms versus 6.68 ms. Most gain comes from avoiding stock's repeated set
 construction. The experiment does **not** demonstrate an extra whole-suite Rust
-advantage over optimized Python. Unique and small batches made zero native calls.
+advantage over optimized Python. Unique and small batches made zero native ID calls.
 Three repetitions on a shared host cannot establish universal control overhead.
-
-[Public-project receipt](results/async-unzip.json): the unchanged async-unzip suite
-at the recorded source commit produced 89 ordered test IDs and 267 passed phases
-in every mode. Twenty receipts cover absent, disabled, enabled, blocked-plugin,
-and uninstall controls. The installed wheel's files matched its archive exactly.
-Enabled runs made zero native calls and four stock batches; this is compatibility
-evidence only. The five-sample timing spread is recorded without a speedup claim.
 
 GitHub CI repeats the synthetic experiment on a separate Linux runner, checks the
 declared duplicate target and conversion-inclusive helper benefit, and uploads
@@ -182,6 +175,35 @@ The first workload skips all 64 empty modules; the control skips none. The delay
 is artificial, and these short local samples do not establish performance on a
 real suite. The receipt also retains an earlier shared-host comparison whose ordinary control
 was 41.74% slower with substantial timing variability. The final comparison ran
-without concurrent task checks or builds; short local timings remain noisy.
+without concurrent local checks or builds; short local timings remain noisy.
 Static discovery can omit runtime-only tests; outcome parity in these synthetic
 examples does not establish complete collection elsewhere.
+
+## Assertion-location batches
+
+The 0.1.0 assertion adapter batches generated locations at module boundaries on
+pytest 9.1.1 and GIL-enabled CPython 3.14. Existing alpha ID/discovery
+receipts predate this path and must keep their original versions and labels.
+
+```sh
+uv run --no-sync python benchmarks/assertions.py --repeats 3
+```
+
+This synthetic full-run comparison uses 32 modules with 4,096 assertions in 256
+tests. It compares fresh processes with cold and warm rewritten-bytecode caches,
+checks ordered IDs and phase outcomes separately from timing, and records native
+batch counts. CI retains both controls alongside the existing benchmark receipts.
+
+Compare the same source revision, interpreter, dependencies, pytest arguments and
+bytecode-cache conditions in fresh stock/enabled processes. Run profiling separately
+from timing. Check exact ordered IDs, setup/call/teardown outcomes, errors and exit
+codes, plus assertion native-batch/fallback counters. Differential AST-location and
+mutation checks establish the guarded operation's behavior; component timings alone
+cannot establish a full-run or CI improvement.
+
+[Local candidate samples](results/assertion-batches-local.json) record five pairs:
+cold runs used 17.25% less time; warm runs used 13.74% more (31 ms).
+
+Warm bytecode caches can avoid rewriting, and execution-heavy suites can spend
+little time in this operation. Include those controls and retain slower or null
+results. Native activation establishes eligible work, rather than a speed guarantee.

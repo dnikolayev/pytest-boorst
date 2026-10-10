@@ -1,4 +1,4 @@
-"""Verify a packaged alpha or its fallback against stock pytest."""
+"""Verify a packaged release or its fallback against stock pytest."""
 
 import argparse
 import json

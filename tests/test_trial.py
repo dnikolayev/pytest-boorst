@@ -65,11 +65,11 @@ def test_trial_installs_only_boorst_and_forwards_arguments(monkeypatch):
     ]
 
 
-def test_installed_alpha_needs_no_network_or_reinstallation(monkeypatch):
+def test_installed_release_needs_no_network_or_reinstallation(monkeypatch):
     prepare(monkeypatch, installed=trial.VERSION)
 
     def unexpected(*args, **kwargs):
-        pytest.fail("An installed alpha must not invoke the installer.")
+        pytest.fail("An installed release must not invoke the installer.")
 
     monkeypatch.setattr(trial.subprocess, "run", unexpected)
     assert trial.main() == 0

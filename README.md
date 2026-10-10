@@ -1,7 +1,9 @@
 # pytest-boorst
 
-Experimental Rust-powered acceleration for pytest, targeting large batches of
+Guarded Rust-powered acceleration for pytest, targeting large batches of
 duplicate ASCII parameter IDs and many explicit sibling test-file arguments.
+On supported CPython 3.14 environments, it also batches assertion-location updates
+during test-file rewriting.
 Suites with unique IDs, small batches, ordinary directory arguments, or time spent
 mainly importing dependencies and running fixtures/tests can see little gain or
 overhead. See the [measured results](#performance-evidence).
@@ -9,20 +11,20 @@ overhead. See the [measured results](#performance-evidence).
 Pytest keeps control of test collection, fixtures, execution, and reporting.
 Acceleration is opt-in and requires a recognized pytest implementation.
 
-## Try the alpha
+## Install and run
 
 From your project directory, with its test dependencies already installed in its
 virtual environment, install from PyPI and run with uv:
 
 ```sh
-uv pip install --no-deps pytest-boorst==0.1.0a10
+uv pip install --upgrade --no-deps pytest-boorst
 uv run --no-sync pytest --boorst -q tests/
 ```
 
 Or, with your project's virtual environment activated, use pip:
 
 ```sh
-python -m pip install --no-deps pytest-boorst==0.1.0a10
+python -m pip install --upgrade --no-deps pytest-boorst
 pytest --boorst -q tests/
 ```
 
@@ -33,11 +35,11 @@ enables guarded acceleration for that pytest run, using your existing configurat
 and leaving your lockfile unchanged.
 
 Native wheels cover macOS Intel/ARM64, Windows x86-64/x86/ARM64, and Linux
-glibc/musl on x86-64/x86/ARM64. See the [platform matrix](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a10/CONTRIBUTING.md#platform-wheels).
+glibc/musl on x86-64/x86/ARM64. See the [platform matrix](CONTRIBUTING.md#platform-wheels).
 Other platforms can install the universal Python wheel: it retains the guarded
 directory optimization on supported Linux/macOS environments and uses stock IDs.
 
-ID and directory acceleration stay disabled when `--boorst` is omitted and `PYTEST_BOORST=1` is unset. Use
+ID, directory and assertion-location acceleration stay disabled when `--boorst` is omitted and `PYTEST_BOORST=1` is unset. Use
 `-p no:boorst` to prevent plugin loading; uninstalling the package restores ordinary
 pytest behavior. If plugin autoload is disabled, load it explicitly with
 `pytest -p boorst --boorst -q tests/`.
@@ -90,9 +92,25 @@ tracing use stock discovery. Changed hooks, plugins, or collection options stop
 reuse; changed directory metadata invalidates the report. Windows currently uses
 stock discovery because directory reuse has not been validated there; this does
 not establish a Windows-specific defect. Plugins inspecting discarded collectors or pytest's private
-collection-cache layout are outside this experimental compatibility boundary.
+collection-cache layout are outside this guarded compatibility boundary.
 
-This uses a narrowly guarded private pytest method. The tested compatibility
+On **pytest 9.1.1 and GIL-enabled CPython 3.14**, `--boorst` also fills generated
+assertion-node locations in Rust batches at module boundaries. Pytest constructs
+the assertion code as usual; batching reduces crossings into the native helper.
+The adapter handles verified fresh-file rewriting through a private rewriter
+subclass. Pytest's global rewriter class and direct `rewrite_asserts` calls retain
+their usual behavior.
+
+Modified source/runtime code, custom AST classes or metadata, tracing, profiling,
+monitoring, unsupported configuration and unavailable native helpers use stock
+location updates. The assertion-pass hook uses stock rewriting; tuple-assertion
+warnings flush pending locations before continuing with stock updates. Native
+declines replay stock locations. Other pytest/Python versions retain their existing
+ID/discovery paths and stock assertion rewriting. The summary reports the assertion
+adapter's status and reason, native batches, assertions and fallback batches.
+This batching path has no universal speedup guarantee.
+
+These paths use narrowly guarded private pytest methods. The tested compatibility
 boundary does not establish compatibility with every possible third-party plugin
 or modification of pytest internals. Tests cover ordered IDs, phase outcomes,
 coverage, asyncio, xdist, callbacks, errors, and repeated invocation.
@@ -170,8 +188,8 @@ runs do not replace the cached history. A cache write failure does not change te
 outcomes; unreadable history makes the next run learn again. The summary explains
 activation or fallback.
 
-The guarded four-worker attrs comparison measured **0.61% less time** across five
-pairs; an earlier 10.72% result did not reproduce. This is a Python scheduling
+The guarded four-worker comparison on a 1,413-test workload measured **0.61% less
+time** across five pairs; an earlier 10.72% result did not reproduce. This is a Python scheduling
 policy, not a Rust speedup or an established 5% improvement. Measure it on your own
 suite before adopting it. See the [experiment results](RESULTS.md#non-daemon-acceleration-experiments).
 
@@ -203,7 +221,7 @@ python -X importtime -m pytest --boorst-profile --collect-only
 
 Profiling adds observation overhead, so compare stock/enabled timing without the
 profiler and inspect phases in a separate run. See [optimization decisions and
-public collection controls](RESULTS.md) for the current evidence and limits.
+collection controls](RESULTS.md) for the current evidence and limits.
 
 ## Experimental batched profiling
 
@@ -260,7 +278,8 @@ An independent benchmark job retains raw timings and CPU/memory observations.
 
 ## Performance evidence
 
-Measured on Ubuntu 24.04, CPython 3.14.8, pytest 9.1.1 and Boorst 0.1.0a2.
+The historical measurements below used Ubuntu 24.04, CPython 3.14.8, pytest 9.1.1
+and Boorst 0.1.0a2. They predate assertion-location batching in 0.1.0.
 Times are medians of three fresh **full pytest runs**, including startup,
 collection, fixtures and execution. Percentages use unrounded medians.
 
@@ -277,10 +296,22 @@ collection, fixtures and execution. Percentages use unrounded medians.
 | Duplicate-ID bookkeeping | Avoids rebuilding the used-ID set for every collision; PyO3 accelerates the bounded helper. |
 | Directory-report reuse | Reuses a successful sibling-collector listing across file arguments, avoiding repeated scans and collector construction. This optimization uses Python. |
 
+A separate local 0.1.0 candidate comparison on CPython 3.14.7 / pytest 9.1.1 used
+32 modules, 256 tests and 4,096 assertions, with five alternating full-run pairs:
+
+| Assertion-rewriting workload | Stock | Enabled | Change in wall time |
+| --- | ---: | ---: | ---: |
+| Cold bytecode cache | 1.1090 s | 0.9177 s | 17.25% less |
+| Warm bytecode cache | 0.2231 s | 0.2537 s | 13.74% more (31 ms) |
+
+The cold run used 32 native module batches; the warm run used none. Both preserved
+ordered IDs and phase outcomes. Startup verification can outweigh savings when
+little rewriting is needed. See [raw evidence and limits](RESULTS.md#assertion-location-batching).
+
 Most ID savings come from the algorithm: the optimized Python comparison took
 6.739 s for duplicate IDs, versus 6.685 s with Rust. The isolated helper took
 6.40 ms in Python and 4.34 ms in Rust; helper timings describe only that component.
-Unique and small controls made zero native calls. Ordinary suites can see little
+Unique and small controls made zero native ID calls. Ordinary suites can see little
 benefit or overhead; these synthetic results do not predict overall project CI.
 
 Both harnesses verify exact ordered node IDs, setup/call/teardown outcomes and
@@ -322,5 +353,5 @@ uv run --no-sync python benchmarks/discovery.py --repeats 3
 uv run --no-sync python benchmarks/discovery.py --directories 4 --repeats 3 --output benchmark-results-multiple-directories.json
 ```
 
-See [benchmark methodology](https://github.com/dnikolayev/pytest-boorst/blob/v0.1.0a10/benchmarks/README.md) for detailed compatibility
-controls and earlier public-project measurements.
+See [benchmark methodology](benchmarks/README.md) for detailed compatibility
+controls and historical synthetic measurements.
