@@ -71,6 +71,62 @@ claim is made for them.
 | [SQLAlchemy](https://github.com/sqlalchemy/sqlalchemy) | Unmeasured. |
 | [Home Assistant](https://github.com/home-assistant/core) | Unmeasured. |
 
+## Non-daemon acceleration experiments
+
+Three ideas from the [rpytest architecture](https://github.com/neul-labs/rpytest/tree/db91fdde90f8b8e9e70420168b52ec872a61248c)
+were tested as isolated prototypes. **None passed the final 5% full-run
+improvement gate, so none is included in Boorst.** The preliminary 10.72%
+scheduling result was excluded from acceptance because the guarded five-pair
+comparison did not reproduce it. These are rejected-candidate measurements,
+not speedups available with `--boorst`.
+
+All full runs used the same [attrs revision](https://github.com/python-attrs/attrs/tree/644b4e165bfbeee7e127de6fcbda08b64014316f),
+macOS ARM64, CPython 3.14.7 and pytest 9.1.1. Timings include fresh interpreter
+startup. Runs used a fixed Hypothesis seed and isolated caches; comparisons were
+run sequentially. Positive improvement means a lower candidate median.
+
+| Experiment | Baseline | Candidate | Improvement | Decision |
+| --- | ---: | ---: | ---: | --- |
+| Rust batch `-k 'not pickle'` matching | 7.067 s | 7.208 s | -1.99% | Reject: matching itself was only 0.11% of baseline time. |
+| Rust batch `-m 'not slow'` matching | 7.231 s | 7.480 s | -3.44% | Reject: matching itself was only 0.04% of baseline time. |
+| Rust batched phase totals | 7.223 s | 7.177 s | +0.63% | Reject: below the gate; only a small feasibility screen. |
+| Cached duration ordering of xdist scope groups | 4.098 s | 4.073 s | +0.61% | Reject: five pairs did not reproduce the preliminary gain. |
+
+Filtering used two runs per mode and selector. The keyword case selected 1,302
+tests; the marker case selected all 1,413. All measured selected IDs, deselection
+batches, phase outcomes and exit codes matched. An additional 84,588 expression
+comparisons and 60 fresh-process pairs covered pytest 7.4.4, 8.4.1 and 9.1.1.
+These checks do not establish compatibility with arbitrary plugins or custom
+items: those production guards were incomplete. Stock matching took about 8 ms
+for keywords and 3 ms for markers. Eliminating it entirely would still fall far
+short of the full-run target on this corpus. Two samples cannot reliably attribute
+the observed whole-process slowdowns to the matching implementation.
+
+Phase aggregation kept pytest's regular reporting hooks and compared two Python
+runs around one batched Rust run. All 1,413 test IDs and 4,235 phase records
+matched, including outcomes and xfail status. A separate 300,000-record component
+test, with five trials per variant, took 46 ms in Python, 49 ms with one Rust call
+per record and 60 ms with Rust batching. Existing Boorst aggregation already uses
+simple Python additions; allocating and converting a batch adds work.
+
+Scheduling used four workers with xdist 3.8.0 and preserved `loadscope` grouping,
+worker inventories and within-group ordering. It intentionally changed group
+execution order, so it would require a separate opt-in. A preliminary three-pair
+screen suggested 10.72%, but five alternating pairs with the guarded installed
+wheel measured only 0.61%. Every candidate run confirmed activation; all runs
+matched ordered collections and sorted node/phase/outcome/xfail records, with
+successful exits. The learning run took another 4.490 s and is excluded from the
+comparison. Duration history was frozen for the comparison; the receipt retains
+its hash, not its values or per-worker timing. This Python scheduling policy did
+not demonstrate a qualifying gain, and it is not a Rust acceleration claim.
+
+[Samples, parity hashes and prototype identities](benchmarks/results/rpytest-ideas-local.json)
+retain the preliminary result alongside the longer comparison. The summary is
+evidence for these local decisions, not a standalone reproduction package or a
+prediction for another project's CI. Native AST-only collection and cross-run
+fixture reuse remain outside the transparent-plugin scope: they would need to
+preserve dynamic collectors, hooks, fixture visibility and teardown behavior.
+
 ## Reproduce collection controls
 
 Prepare the project's own test dependencies in an isolated environment and keep
