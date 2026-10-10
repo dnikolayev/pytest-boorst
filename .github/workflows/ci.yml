@@ -121,7 +121,7 @@ jobs:
             if [[ "$pytest_version" == 9.* ]]; then
               "$compat_env/bin/python" -m pytest -q
             else
-              "$compat_env/bin/python" -m pytest -q tests/test_ids.py tests/test_plugin.py tests/test_profile.py tests/test_schedule.py
+              "$compat_env/bin/python" -m pytest -q tests/test_ids.py tests/test_plugin.py tests/test_profile.py tests/test_schedule.py tests/test_static.py
             fi
             "$compat_env/bin/python" scripts/smoke.py --pytest-version "$pytest_version"
           done

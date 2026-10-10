@@ -112,6 +112,39 @@ work across workers: each worker normally collects the suite, so the same batch 
 be counted more than once. Worker totals exclude controller-local counters. A worker
 that crashes before publishing its output cannot contribute its missing counters.
 
+## Experimental static discovery
+
+```sh
+pytest --boorst --boorst-static-discovery -q tests/
+```
+
+This separate opt-in mode parses Python source before importing test-pattern files
+found during directory traversal. Files without function or class names matching
+`python_functions` or `python_classes` are skipped; retained files go through
+normal pytest collection, parametrization, fixtures, execution and reporting.
+It works independently of `--boorst`, needs no native extension, and initially
+supports serial pytest 7/8/9. Parallel xdist options are rejected clearly.
+
+**Collection can be incomplete.** Tests exposed only through runtime generation,
+imports, aliases or plugin collectors can be omitted. A successful run means the
+retained tests passed; it does not establish that the complete suite passed.
+The startup notice and summary identify this mode and count skipped, retained and
+source-error files. Omit the option for ordinary complete pytest collection.
+
+Pytest's existing directory traversal still controls `testpaths`, file patterns,
+ignore paths/globs and `norecursedirs`. Explicit file arguments and selectors use
+stock collection. `--doctest-modules` bypasses the prefilter and retains normal
+module-doctest collection. Read, encoding and syntax errors retain the file so
+pytest can report its normal error. Existing ignore hooks can bypass the prefilter.
+Package initializers and conftest files are retained; pytest still loads plugins and
+conftest files, and retained test modules are imported normally.
+
+This can save import/collection time when test-pattern files contain no statically
+named tests and are costly to import. Ordinary test files incur an extra source
+parse. No general speedup or full-suite speed multiplier is established; compare
+your own stock/static runs and verify which tests remain. See the
+[synthetic comparison procedure](benchmarks/README.md#static-discovery).
+
 ## Experimental duration scheduling
 
 With pytest-xdist 3.8.0 installed, enable cached duration ordering explicitly:

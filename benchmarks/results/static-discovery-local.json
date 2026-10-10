@@ -1,0 +1,181 @@
+{
+  "workloads": {
+    "expensive_empty_modules": {
+      "versions": {
+        "python": "3.14.7",
+        "pytest": "9.1.1"
+      },
+      "raw_seconds": {
+        "stock": [
+          1.5385416250210255,
+          1.5068775420077145,
+          1.5040998329641297,
+          1.4685464170761406,
+          1.5564339580014348
+        ],
+        "static": [
+          0.15568483294919133,
+          0.1546255829744041,
+          0.1473978329449892,
+          0.13754195801448077,
+          0.13634920795448124
+        ]
+      },
+      "median_seconds": {
+        "stock": 1.5068775420077145,
+        "static": 0.1473978329449892
+      },
+      "improvement_percent": 90.21832704808905,
+      "collected": 2,
+      "ordered_ids_sha256": "5b3c98428d4464e8ada08f2562574586ad889cdbe8c30c3a3820d681db1b9fd7",
+      "phase_outcomes_sha256": "ee2acf65473c65ef0cfabbb6cb5140eb5865f422c0148955f2593fd71e9cada0",
+      "parity": true,
+      "counts": {
+        "examined": 65,
+        "candidates": 1,
+        "skipped": 64,
+        "fallback": 0
+      }
+    },
+    "ordinary_tests": {
+      "versions": {
+        "python": "3.14.7",
+        "pytest": "9.1.1"
+      },
+      "raw_seconds": {
+        "stock": [
+          0.1751431250013411,
+          0.17231300007551908,
+          0.17528470803517848,
+          0.17717095906846225,
+          0.17223550006747246
+        ],
+        "static": [
+          0.18019816605374217,
+          0.17556737503036857,
+          0.2040934170363471,
+          0.21083408396225423,
+          0.17754870804492384
+        ]
+      },
+      "median_seconds": {
+        "stock": 0.1751431250013411,
+        "static": 0.18019816605374217
+      },
+      "improvement_percent": -2.8862343596771867,
+      "collected": 66,
+      "ordered_ids_sha256": "e45a36e014d7009fc14ca31092c5c9da6019a4eec59d2b3484b82e3f7a864afb",
+      "phase_outcomes_sha256": "228fd7ddac5453493aa02df4ec9275650a7fe794f749e1f18d6e0647098e28ea",
+      "parity": true,
+      "counts": {
+        "examined": 65,
+        "candidates": 65,
+        "skipped": 0,
+        "fallback": 0
+      }
+    }
+  },
+  "arguments": [
+    "pytest",
+    "-p",
+    "pytest_boorst.plugin",
+    "-q",
+    "-p",
+    "no:cacheprovider"
+  ],
+  "pairs": 5,
+  "benchmark_script_sha256": "af9177a845b27df6844c8eeefd9f14fcbcdfbadf34c1620bfc59ac7a5916fe36",
+  "workload_import_delay_seconds": 0.015,
+  "source_sha256": {
+    "_static.py": "ae72d53f5d9fa66b56163aebf8c1d68106ee142accde62c37cff1b65c34ef800",
+    "plugin.py": "e308b2ec47a2711e0683113fde8905c5e784d78567424535a7e461997edec02c"
+  },
+  "limits": "Synthetic serial full runs; not a general speedup or complete-test guarantee.",
+  "previous_shared_host_run": {
+    "workloads": {
+      "expensive_empty_modules": {
+        "versions": {
+          "python": "3.14.7",
+          "pytest": "9.1.1"
+        },
+        "raw_seconds": {
+          "stock": [
+            1.5415744580095634,
+            1.6136042498983443,
+            1.5232833330519497
+          ],
+          "static": [
+            0.20026012510061264,
+            0.21169324999209493,
+            0.22072445799130946
+          ]
+        },
+        "median_seconds": {
+          "stock": 1.5415744580095634,
+          "static": 0.21169324999209493
+        },
+        "improvement_percent": 86.2677246050491,
+        "collected": 2,
+        "ordered_ids_sha256": "5b3c98428d4464e8ada08f2562574586ad889cdbe8c30c3a3820d681db1b9fd7",
+        "phase_outcomes_sha256": "ee2acf65473c65ef0cfabbb6cb5140eb5865f422c0148955f2593fd71e9cada0",
+        "parity": true,
+        "counts": {
+          "examined": 65,
+          "candidates": 1,
+          "skipped": 64,
+          "fallback": 0
+        }
+      },
+      "ordinary_tests": {
+        "versions": {
+          "python": "3.14.7",
+          "pytest": "9.1.1"
+        },
+        "raw_seconds": {
+          "stock": [
+            0.3152013330254704,
+            0.2807372910901904,
+            0.2716237079584971
+          ],
+          "static": [
+            0.39790737500879914,
+            0.4160535419359803,
+            0.2835323750041425
+          ]
+        },
+        "median_seconds": {
+          "stock": 0.2807372910901904,
+          "static": 0.39790737500879914
+        },
+        "improvement_percent": -41.736558568190475,
+        "collected": 66,
+        "ordered_ids_sha256": "e45a36e014d7009fc14ca31092c5c9da6019a4eec59d2b3484b82e3f7a864afb",
+        "phase_outcomes_sha256": "228fd7ddac5453493aa02df4ec9275650a7fe794f749e1f18d6e0647098e28ea",
+        "parity": true,
+        "counts": {
+          "examined": 65,
+          "candidates": 65,
+          "skipped": 0,
+          "fallback": 0
+        }
+      }
+    },
+    "arguments": [
+      "pytest",
+      "-p",
+      "pytest_boorst.plugin",
+      "-q",
+      "-p",
+      "no:cacheprovider"
+    ],
+    "pairs": 3,
+    "benchmark_script_sha256": "af9177a845b27df6844c8eeefd9f14fcbcdfbadf34c1620bfc59ac7a5916fe36",
+    "workload_import_delay_seconds": 0.015,
+    "source_sha256": {
+      "_static.py": "ae72d53f5d9fa66b56163aebf8c1d68106ee142accde62c37cff1b65c34ef800",
+      "plugin.py": "e308b2ec47a2711e0683113fde8905c5e784d78567424535a7e461997edec02c"
+    },
+    "limits": "Synthetic serial full runs; not a general speedup or complete-test guarantee."
+  },
+  "measurement_note": "Final five-pair run had no concurrent task tests/builds. Earlier three-pair shared-host samples are retained and showed substantially greater variance."
+}
